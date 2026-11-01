@@ -39,6 +39,15 @@ The old terms also matched "excluded" in unrelated assumptions such as "guarante
 
 ### Re-scored with the corrected scorer (no new model calls)
 
+Reproduce with `scripts/rescore.py`, which re-scores saved result files against the current
+`questions.yaml` without calling the model or changing the files:
+
+```bash
+source .venv/bin/activate
+python scripts/rescore.py eval/results/20261101-173532_dev.json eval/results/20261101-173649_dev.json \
+    eval/results/20261101-173749_dev.json eval/results/20261101-173903_heldout.json
+```
+
 | Run | Before (correct / abstained / wrong) | After | Caveats before → after |
 |---|---|---|---|
 | dev 1 | 20 / 0 / 0 | 20 / 0 / 0 | 3/3 → 3/3 |
