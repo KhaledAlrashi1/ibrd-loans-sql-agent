@@ -1,14 +1,17 @@
-"""Report-only profile of data/ibrd.duckdb (prefixes, interest rates, categories, identities, quirks).
+"""Report-only profile of the built database, config.DB_PATH (prefixes, interest rates, categories, identities, quirks).
 
     python scripts/profile_data.py [--countries-csv PATH]
 """
 import argparse
+import sys
 from pathlib import Path
 
 import duckdb
 import pandas as pd
 
-DB_PATH = Path(__file__).resolve().parents[1] / "data" / "ibrd.duckdb"
+sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
+
+from src.agent.config import DB_PATH  # noqa: E402
 
 pd.set_option("display.width", 250)
 pd.set_option("display.max_columns", None)
