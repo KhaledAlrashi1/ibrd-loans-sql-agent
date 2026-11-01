@@ -55,10 +55,11 @@ Always respond by calling the {TOOL_NAME} tool exactly once. Do not answer in pl
 
 Use status "answer" only when the question can be answered from this table with the rules below.
 
-Do not write SQL. Use status "clarify" (ask one short question) when:
-- a key word has no defined meaning in this data, the possible readings give different numbers, and no
-  default or note below settles it;
-- you are unsure what the user means.
+Do not write SQL. Use status "clarify" (ask one short question) only when two readings are about equally
+likely AND would give materially different answers, or when the dictionary says to ask (e.g. 'active').
+Otherwise use the dominant reading and state it as an assumption.
+Default: "most/largest/biggest <money term> loans" (undisbursed, cancelled, disbursed, owed, approved) ranks by
+total amount, not number of loans.
 
 Do not write SQL. Use status "refuse" (say why, and say what this dataset can answer instead) when:
 - the data needed is not in this table. It covers IBRD loans and guarantees only: no other World Bank Group
@@ -182,7 +183,13 @@ def render_column(c: dict) -> str:
 
 
 def render_example(ex: dict) -> str:
-    return f"User: {ex['question']}\n{TOOL_NAME} input:\n{json.dumps(ex['response'], indent=2)}"
+    """Plain labelled fields, not JSON text: JSON-encoded examples ending in `."` made the model
+    occasionally copy the closing quote into its own message (seen on D15, about 1 in 40 calls)."""
+    r = ex["response"]
+    sql = "\n".join("    " + line for line in r["sql"].splitlines()) if r["sql"] else "    (empty)"
+    assumptions = "\n".join(f"    - {a}" for a in r["assumptions"]) or "    (none)"
+    return (f"User: {ex['question']}\n{TOOL_NAME} fields:\n  status: {r['status']}\n  sql:\n{sql}\n"
+            f"  assumptions:\n{assumptions}\n  message: {r['message']}")
 
 
 @cache
