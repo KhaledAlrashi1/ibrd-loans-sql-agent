@@ -1,15 +1,14 @@
 """Recompute every gold answer in eval/questions.yaml with pandas, straight from the raw CSV.
 
 Independent of the DuckDB build: raw column names, its own parsing, no import of build_db.py.
-Compares against gold_result using the tolerances in the file and reports disagreements.
+Compares against gold_result using the tolerances in the file (comparison logic: src/agent/scoring.py)
+and reports disagreements.
 It never edits questions.yaml.
 
     python scripts/verify_gold.py [--split dev|heldout|all]
 """
 
 import argparse
-import itertools
-import math
 import sys
 from pathlib import Path
 
@@ -17,6 +16,10 @@ import pandas as pd
 import yaml
 
 ROOT = Path(__file__).resolve().parents[1]
+sys.path.insert(0, str(ROOT))
+
+from src.agent.scoring import plain, rows_match  # noqa: E402
+
 RAW_CSV = ROOT / "data" / "raw" / "ibrd_snapshot_2026-09-30.csv"
 QUESTIONS = ROOT / "eval" / "questions.yaml"
 
@@ -94,47 +97,6 @@ def answers(df: pd.DataFrame) -> dict:
         "H07": top(loans.groupby("Region")[OBLIGATION].sum(), 1),
         "H08": [[int((loans["Loan Status"] == "Fully Repaid").sum())]],
     }
-
-
-def tolerance_kind(q: dict) -> str:
-    if q["category"] == "ratio":
-        return "ratio"
-    if "AVG(interest_rate)" in q["spec"]:
-        return "rate"
-    return "money"
-
-
-def values_match(gold, mine, kind: str, scoring: dict) -> bool:
-    if isinstance(gold, bool) or isinstance(mine, bool) or isinstance(gold, str) or isinstance(mine, str):
-        return gold == mine
-    if isinstance(gold, int) and isinstance(mine, int):
-        return gold == mine
-    if kind == "ratio":
-        return abs(gold - mine) <= scoring["ratio_tolerance_absolute"]
-    if kind == "rate":
-        return abs(gold - mine) <= scoring["rate_tolerance_absolute"]
-    return math.isclose(gold, mine, rel_tol=scoring["money_tolerance_relative"], abs_tol=1e-9)
-
-
-def rows_match(gold_rows, mine_rows, q: dict, scoring: dict) -> bool:
-    """scoring.columns: each gold column must match a distinct answer column; extra answer columns are allowed."""
-    if len(gold_rows) != len(mine_rows):
-        return False
-    n_gold = len(gold_rows[0]) if gold_rows else 0
-    n_mine = len(mine_rows[0]) if mine_rows else 0
-    kind = tolerance_kind(q)
-    for cols in itertools.permutations(range(n_mine), n_gold):
-        gold, mine = gold_rows, [[row[c] for c in cols] for row in mine_rows]
-        if not q["order_matters"]:
-            gold, mine = sorted(gold, key=str), sorted(mine, key=str)
-        if all(all(values_match(gv, mv, kind, scoring) for gv, mv in zip(g, m)) for g, m in zip(gold, mine)):
-            return True
-    return False
-
-
-def plain(v):
-    """numpy scalars -> Python, so comparisons and printing behave."""
-    return v.item() if hasattr(v, "item") else v
 
 
 def main() -> int:
