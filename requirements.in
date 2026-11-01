@@ -1,0 +1,10 @@
+# Direct runtime dependencies. requirements.txt (what Streamlit Community Cloud installs) is compiled from this
+# file with every package pinned to the version in the project's .venv; see the command at the top of it.
+altair==6.3.0        # charts (also a streamlit dependency)
+anthropic==2.3.0
+duckdb==2.0.0
+jinja2==3.1.6        # pandas Styler, used for display-only number formatting
+pandas==3.1.0
+pyyaml==6.0.3
+sqlglot==30.27.0
+streamlit==1.66.1
