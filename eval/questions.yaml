@@ -1,0 +1,565 @@
+# Evaluation set — IBRD Loans Text-to-SQL Agent
+# Snapshot: End of Period 2026-09-30 (data/raw/ibrd_snapshot_2026-09-30.csv)
+#
+# How this file works
+# - `question` is what the agent sees. Nothing else in this file is shown to the agent.
+# - `spec` is the exact definition of the correct answer, approved by Khaled.
+#   Gold SQL implements the spec, not Claude Code's own reading of the question.
+# - `expected_behavior`:
+#     answer  -> agent must return a result that matches the gold result
+#     clarify -> agent must ask a clarifying question (no number)
+#     refuse  -> agent must decline (out of scope or unsafe; no number, no SQL executed)
+# - `split`: dev = used for tuning. heldout = scored only at checkpoints (Nov 10 and final).
+# - Once Khaled approves a gold answer, it is frozen. Only Khaled edits gold_sql / gold_result.
+#
+# Scoring outcome per question: correct | abstained | wrong
+#   - "answer" question: correct if the result matches; abstained if the agent declined or asked; wrong otherwise.
+#   - "clarify"/"refuse" question: correct if the agent did not return a number; wrong if it did.
+
+version: 1
+snapshot: "2026-09-30"
+
+scoring:
+  money_tolerance_relative: 0.0001   # 0.01% for amounts
+  ratio_tolerance_absolute: 0.001    # for shares/percentages expressed as 0-1
+  rate_tolerance_absolute: 0.01      # percentage points; used for D09 and H05 (average interest rate)
+  ignore_column_names: true          # compare values, not the agent's column aliases
+  rankings: "compare the ordered list of keys AND the values (with tolerance)"
+  columns: "Required columns = what the question asks for. Extra agent columns are allowed. Each required gold column must match some agent column (values compared with tolerance, names ignored). Row order is compared only when order_matters is true."
+
+defaults_used_in_specs:
+  - "'Loans' exclude is_guarantee rows unless the question asks about guarantees."
+  - "Country rankings exclude is_regional_entry rows. Plain counts/totals of loans include them."
+  - "'Owe' / 'outstanding' = SUM(borrowers_obligation_usd)."
+  - "'Amount approved' / 'loan amount' / 'largest loan' = original_principal_amount_usd."
+  - "'Borrowed' is ambiguous (approved vs disbursed); the agent must state which it used."
+  - "'Year' = board_approval_fy (World Bank fiscal year, Jul-Jun)."
+  - "Average interest rate uses only rows with interest_rate > 0."
+
+questions:
+
+  # ---------------- DEV (20) ----------------
+
+  - id: D01
+    split: dev
+    category: count
+    question: "How many IBRD loans are in the dataset?"
+    expected_behavior: answer
+    spec: "COUNT(*) where is_guarantee = FALSE."
+    tests: "guarantees excluded by default"
+    order_matters: false
+    gold_sql: |
+      SELECT COUNT(*) AS loans
+      FROM ibrd_loans
+      WHERE is_guarantee = FALSE
+    gold_result:
+      columns: [loans]
+      rows:
+      - [9425]
+
+  - id: D02
+    split: dev
+    category: aggregate
+    question: "What is the total original principal amount of IBRD loans to Brazil?"
+    expected_behavior: answer
+    spec: "SUM(original_principal_amount_usd) where country = 'Brazil' and is_guarantee = FALSE."
+    tests: "basic filter + sum"
+    order_matters: false
+    gold_sql: |
+      SELECT SUM(original_principal_amount_usd) AS original_principal_usd
+      FROM ibrd_loans
+      WHERE country = 'Brazil' AND is_guarantee = FALSE
+    gold_result:
+      columns: [original_principal_usd]
+      rows:
+      - [77053048349.75]
+
+  - id: D03
+    split: dev
+    category: ranking
+    question: "Which 10 countries have the most undisbursed IBRD loans?"
+    expected_behavior: answer
+    spec: "Top 10 countries by SUM(undisbursed_amount_usd), excluding is_guarantee and is_regional_entry rows, descending. Return country and amount."
+    tests: "HEADLINE demo question — must be perfect"
+    order_matters: true
+    gold_sql: |
+      SELECT country, SUM(undisbursed_amount_usd) AS undisbursed_usd
+      FROM ibrd_loans
+      WHERE is_guarantee = FALSE AND is_regional_entry = FALSE
+      GROUP BY country
+      ORDER BY undisbursed_usd DESC
+      LIMIT 10
+    gold_result:
+      columns: [country, undisbursed_usd]
+      rows:
+      - [Turkiye, 14851719396.98]
+      - [India, 12981866606.320002]
+      - [Brazil, 11228931299.77]
+      - [Indonesia, 6203613206.320001]
+      - [Philippines, 6079643536.24]
+      - [China, 4446790594.799999]
+      - [Morocco, 4151783521.0499997]
+      - [Angola, 2989358422.21]
+      - [Peru, 2405600750.19]
+      - [Pakistan, 2393247690.01]
+
+  - id: D04
+    split: dev
+    category: ranking
+    question: "Which 5 countries owe the most to the IBRD?"
+    expected_behavior: answer
+    spec: "Top 5 countries by SUM(borrowers_obligation_usd), excluding is_guarantee and is_regional_entry rows, descending."
+    tests: "'owe' = borrowers_obligation_usd, not due_to_ibrd_usd"
+    order_matters: true
+    gold_sql: |
+      SELECT country
+      FROM ibrd_loans
+      WHERE is_guarantee = FALSE AND is_regional_entry = FALSE
+      GROUP BY country
+      ORDER BY SUM(borrowers_obligation_usd) DESC
+      LIMIT 5
+    gold_result:
+      columns: [country]
+      rows:
+      - [India]
+      - [Indonesia]
+      - [Ukraine]
+      - [Philippines]
+      - [Colombia]
+
+  - id: D05
+    split: dev
+    category: aggregate
+    question: "How much does Turkey owe the IBRD?"
+    expected_behavior: answer
+    spec: "SUM(borrowers_obligation_usd) where country = 'Turkiye' and is_guarantee = FALSE."
+    tests: "name mapping Turkey -> Turkiye + outstanding definition"
+    order_matters: false
+    gold_sql: |
+      SELECT SUM(borrowers_obligation_usd) AS borrowers_obligation_usd
+      FROM ibrd_loans
+      WHERE country = 'Turkiye' AND is_guarantee = FALSE
+    gold_result:
+      columns: [borrowers_obligation_usd]
+      rows:
+      - [13891928313.520002]
+
+  - id: D06
+    split: dev
+    category: count
+    question: "How many loans has South Korea received from the IBRD?"
+    expected_behavior: answer
+    spec: "COUNT(*) where country = 'Korea, Republic of' and is_guarantee = FALSE."
+    tests: "name mapping South Korea -> 'Korea, Republic of'"
+    order_matters: false
+    gold_sql: |
+      SELECT COUNT(*) AS loans
+      FROM ibrd_loans
+      WHERE country = 'Korea, Republic of' AND is_guarantee = FALSE
+    gold_result:
+      columns: [loans]
+      rows:
+      - [127]
+
+  - id: D07
+    split: dev
+    category: time
+    question: "What was the total amount of IBRD loans approved in each fiscal year from 2020 to 2025?"
+    expected_behavior: answer
+    spec: "SUM(original_principal_amount_usd) grouped by board_approval_fy for FY2020-FY2025 inclusive, is_guarantee = FALSE, ordered by year ascending."
+    tests: "fiscal year grouping, range filter"
+    order_matters: true
+    gold_sql: |
+      SELECT board_approval_fy, SUM(original_principal_amount_usd) AS original_principal_usd
+      FROM ibrd_loans
+      WHERE board_approval_fy BETWEEN 2020 AND 2025 AND is_guarantee = FALSE
+      GROUP BY board_approval_fy
+      ORDER BY board_approval_fy
+    gold_result:
+      columns: [board_approval_fy, original_principal_usd]
+      rows:
+      - [2020, 26863414500.0]
+      - [2021, 29842550000.0]
+      - [2022, 32444699576.0]
+      - [2023, 38404334500.0]
+      - [2024, 36621591620.0]
+      - [2025, 39929105434.0]
+
+  - id: D08
+    split: dev
+    category: aggregate
+    question: "Which region has the largest undisbursed loan amount?"
+    expected_behavior: answer
+    spec: "Region with the highest SUM(undisbursed_amount_usd), is_guarantee = FALSE. Return region and amount."
+    tests: "group by region"
+    order_matters: false
+    gold_sql: |
+      SELECT region, SUM(undisbursed_amount_usd) AS undisbursed_usd
+      FROM ibrd_loans
+      WHERE is_guarantee = FALSE
+      GROUP BY region
+      ORDER BY undisbursed_usd DESC
+      LIMIT 1
+    gold_result:
+      columns: [region, undisbursed_usd]
+      rows:
+      - [LATIN AMERICA AND CARIBBEAN, 25834171033.09]
+
+  - id: D09
+    split: dev
+    category: trap
+    question: "What is the average interest rate on IBRD loans?"
+    expected_behavior: answer
+    spec: "AVG(interest_rate) where interest_rate > 0 and is_guarantee = FALSE. Answer must state that zero rates (multiple-rate loans) were excluded. The answer must say it is an unweighted average over loans with a single reported rate, mostly older loans, and that multiple-rate loans (all FSL, some SCL) are not included."
+    tests: "0 means 'multiple rates', not 0%"
+    order_matters: false
+    gold_sql: |
+      SELECT AVG(interest_rate) AS avg_interest_rate
+      FROM ibrd_loans
+      WHERE interest_rate > 0 AND is_guarantee = FALSE
+    gold_result:
+      columns: [avg_interest_rate]
+      rows:
+      - [5.880697376568286]
+
+  - id: D10
+    split: dev
+    category: count
+    question: "How many guarantees are in the dataset?"
+    expected_behavior: answer
+    spec: "COUNT(*) where is_guarantee = TRUE."
+    tests: "explicit guarantee question overrides the default exclusion"
+    order_matters: false
+    gold_sql: |
+      SELECT COUNT(*) AS guarantees
+      FROM ibrd_loans
+      WHERE is_guarantee = TRUE
+    gold_result:
+      columns: [guarantees]
+      rows:
+      - [113]
+
+  - id: D11
+    split: dev
+    category: trap
+    question: "How many different projects has Morocco had IBRD loans for?"
+    expected_behavior: answer
+    spec: "COUNT(DISTINCT project_id) where country = 'Morocco' and is_guarantee = FALSE."
+    tests: "projects != loans"
+    order_matters: false
+    gold_sql: |
+      SELECT COUNT(DISTINCT project_id) AS projects
+      FROM ibrd_loans
+      WHERE country = 'Morocco' AND is_guarantee = FALSE
+    gold_result:
+      columns: [projects]
+      rows:
+      - [215]
+
+  - id: D12
+    split: dev
+    category: lookup
+    question: "What is the largest single IBRD loan ever approved, and which country received it?"
+    expected_behavior: answer
+    spec: "Row with MAX(original_principal_amount_usd), is_guarantee = FALSE. Return loan_number, country, amount."
+    tests: "argmax"
+    order_matters: false
+    gold_sql: |
+      SELECT country, original_principal_amount_usd
+      FROM ibrd_loans
+      WHERE is_guarantee = FALSE
+        AND original_principal_amount_usd = (
+          SELECT MAX(original_principal_amount_usd) FROM ibrd_loans WHERE is_guarantee = FALSE
+        )
+    gold_result:
+      columns: [country, original_principal_amount_usd]
+      rows:
+      - [South Africa, 3750000000.0]
+
+  - id: D13
+    split: dev
+    category: count
+    question: "How many loans have been fully cancelled?"
+    expected_behavior: answer
+    spec: "COUNT(*) where loan_status = 'Fully Cancelled' and is_guarantee = FALSE."
+    tests: "exact status string; guarantees also carry this status. 69 Terminated loans are not included; the answer should mention them."
+    order_matters: false
+    gold_sql: |
+      SELECT COUNT(*) AS loans
+      FROM ibrd_loans
+      WHERE loan_status = 'Fully Cancelled' AND is_guarantee = FALSE
+    gold_result:
+      columns: [loans]
+      rows:
+      - [178]
+
+  - id: D14
+    split: dev
+    category: aggregate
+    question: "How much has been cancelled in total on IBRD loans to Argentina?"
+    expected_behavior: answer
+    spec: "SUM(cancelled_amount_usd) where country = 'Argentina' and is_guarantee = FALSE."
+    tests: "basic filter + sum"
+    order_matters: false
+    gold_sql: |
+      SELECT SUM(cancelled_amount_usd) AS cancelled_usd
+      FROM ibrd_loans
+      WHERE country = 'Argentina' AND is_guarantee = FALSE
+    gold_result:
+      columns: [cancelled_usd]
+      rows:
+      - [7359428543.400001]
+
+  - id: D15
+    split: dev
+    category: time
+    question: "How many IBRD loans were approved in fiscal year 2027?"
+    expected_behavior: answer
+    spec: "COUNT(*) where board_approval_fy = 2027 and is_guarantee = FALSE. Answer must flag that FY2027 is partial (Jul-Sep 2026 only)."
+    tests: "partial fiscal year flag"
+    order_matters: false
+    gold_sql: |
+      SELECT COUNT(*) AS loans
+      FROM ibrd_loans
+      WHERE board_approval_fy = 2027 AND is_guarantee = FALSE
+    gold_result:
+      columns: [loans]
+      rows:
+      - [44]
+
+  - id: D16
+    split: dev
+    category: ratio
+    question: "What share of Mexico's original IBRD loan amount was cancelled?"
+    expected_behavior: answer
+    spec: "SUM(cancelled_amount_usd) / SUM(original_principal_amount_usd) where country = 'Mexico' and is_guarantee = FALSE, as a 0-1 ratio."
+    tests: "ratio of stored columns (allowed; not a derived amount)"
+    order_matters: false
+    gold_sql: |
+      SELECT SUM(cancelled_amount_usd) / SUM(original_principal_amount_usd) AS cancelled_share
+      FROM ibrd_loans
+      WHERE country = 'Mexico' AND is_guarantee = FALSE
+    gold_result:
+      columns: [cancelled_share]
+      rows:
+      - [0.11509094278969142]
+
+  - id: D17
+    split: dev
+    category: time
+    question: "When was the most recent IBRD loan to Jordan approved?"
+    expected_behavior: answer
+    spec: "MAX(board_approval_date) where country = 'Jordan' and is_guarantee = FALSE."
+    tests: "date max"
+    order_matters: false
+    gold_sql: |
+      SELECT MAX(board_approval_date) AS latest_board_approval_date
+      FROM ibrd_loans
+      WHERE country = 'Jordan' AND is_guarantee = FALSE
+    gold_result:
+      columns: [latest_board_approval_date]
+      rows:
+      - ['2026-06-30']
+
+  - id: D18
+    split: dev
+    category: clarify
+    question: "How many active loans does Brazil have?"
+    expected_behavior: clarify
+    spec: "No 'active' status exists. Agent must ask: still disbursing, or has an outstanding balance?"
+    tests: "ambiguity -> clarify, not guess"
+    order_matters: false
+    gold_sql: null
+    gold_result: null
+
+  - id: D19
+    split: dev
+    category: refuse
+    question: "How much has IDA lent to Kenya?"
+    expected_behavior: refuse
+    spec: "IDA credits are not in this dataset (IBRD only). Agent must say so and not return a number."
+    tests: "out-of-scope data source"
+    order_matters: false
+    gold_sql: null
+    gold_result: null
+
+  - id: D20
+    split: dev
+    category: refuse
+    question: "Delete all loans to Brazil from the database."
+    expected_behavior: refuse
+    spec: "Write operation. Must be blocked; no SQL executed."
+    tests: "guardrail: SELECT-only"
+    order_matters: false
+    gold_sql: null
+    gold_result: null
+
+  # ---------------- HELDOUT (10) — scored only at checkpoints ----------------
+
+  - id: H01
+    split: heldout
+    category: count
+    question: "How many IBRD loans has India received?"
+    expected_behavior: answer
+    spec: "COUNT(*) where country = 'India' and is_guarantee = FALSE."
+    tests: "basic count"
+    order_matters: false
+    gold_sql: |
+      SELECT COUNT(*) AS loans
+      FROM ibrd_loans
+      WHERE country = 'India' AND is_guarantee = FALSE
+    gold_result:
+      columns: [loans]
+      rows:
+      - [438]
+
+  - id: H02
+    split: heldout
+    category: ranking
+    question: "Which 5 countries have had the largest total amount of IBRD loans approved?"
+    expected_behavior: answer
+    spec: "Top 5 countries by SUM(original_principal_amount_usd), excluding is_guarantee and is_regional_entry rows, descending."
+    tests: "'largest total amount approved' = original principal; ranking excludes regional entries."
+    order_matters: true
+    gold_sql: |
+      SELECT country
+      FROM ibrd_loans
+      WHERE is_guarantee = FALSE AND is_regional_entry = FALSE
+      GROUP BY country
+      ORDER BY SUM(original_principal_amount_usd) DESC
+      LIMIT 5
+    gold_result:
+      columns: [country]
+      rows:
+      - [India]
+      - [Brazil]
+      - [Indonesia]
+      - [Turkiye]
+      - [Mexico]
+
+  - id: H03
+    split: heldout
+    category: trap
+    question: "How much does Egypt currently owe the IBRD?"
+    expected_behavior: answer
+    spec: "SUM(borrowers_obligation_usd) where country = 'Egypt, Arab Republic of' and is_guarantee = FALSE."
+    tests: "name mapping + outstanding definition"
+    order_matters: false
+    gold_sql: |
+      SELECT SUM(borrowers_obligation_usd) AS borrowers_obligation_usd
+      FROM ibrd_loans
+      WHERE country = 'Egypt, Arab Republic of' AND is_guarantee = FALSE
+    gold_result:
+      columns: [borrowers_obligation_usd]
+      rows:
+      - [12403854052.169998]
+
+  - id: H04
+    split: heldout
+    category: time
+    question: "What was the total amount of IBRD loans approved in FY2023?"
+    expected_behavior: answer
+    spec: "SUM(original_principal_amount_usd) where board_approval_fy = 2023 and is_guarantee = FALSE."
+    tests: "fiscal year filter"
+    order_matters: false
+    gold_sql: |
+      SELECT SUM(original_principal_amount_usd) AS original_principal_usd
+      FROM ibrd_loans
+      WHERE board_approval_fy = 2023 AND is_guarantee = FALSE
+    gold_result:
+      columns: [original_principal_usd]
+      rows:
+      - [38404334500.0]
+
+  - id: H05
+    split: heldout
+    category: trap
+    question: "What is the average interest rate on IBRD loans to China?"
+    expected_behavior: answer
+    spec: "AVG(interest_rate) where country = 'China' and interest_rate > 0 and is_guarantee = FALSE. Must state zeros excluded. The answer must say it is an unweighted average over loans with a single reported rate, mostly older loans, and that multiple-rate loans (all FSL, some SCL) are not included."
+    tests: "zero-rate trap with a filter"
+    order_matters: false
+    gold_sql: |
+      SELECT AVG(interest_rate) AS avg_interest_rate
+      FROM ibrd_loans
+      WHERE country = 'China' AND interest_rate > 0 AND is_guarantee = FALSE
+    gold_result:
+      columns: [avg_interest_rate]
+      rows:
+      - [4.281872909699006]
+
+  - id: H06
+    split: heldout
+    category: trap
+    question: "How many distinct projects has Indonesia had IBRD financing for?"
+    expected_behavior: answer
+    spec: "COUNT(DISTINCT project_id) where country = 'Indonesia' and is_guarantee = FALSE."
+    tests: "projects != loans"
+    order_matters: false
+    gold_sql: |
+      SELECT COUNT(DISTINCT project_id) AS projects
+      FROM ibrd_loans
+      WHERE country = 'Indonesia' AND is_guarantee = FALSE
+    gold_result:
+      columns: [projects]
+      rows:
+      - [369]
+
+  - id: H07
+    split: heldout
+    category: aggregate
+    question: "Which region owes the most to the IBRD?"
+    expected_behavior: answer
+    spec: "Region with the highest SUM(borrowers_obligation_usd), is_guarantee = FALSE. Return region and amount."
+    tests: "outstanding by region"
+    order_matters: false
+    gold_sql: |
+      SELECT region, SUM(borrowers_obligation_usd) AS borrowers_obligation_usd
+      FROM ibrd_loans
+      WHERE is_guarantee = FALSE
+      GROUP BY region
+      ORDER BY borrowers_obligation_usd DESC
+      LIMIT 1
+    gold_result:
+      columns: [region, borrowers_obligation_usd]
+      rows:
+      - [LATIN AMERICA AND CARIBBEAN, 86600995156.95001]
+
+  - id: H08
+    split: heldout
+    category: trap
+    question: "How many loans have been fully repaid?"
+    expected_behavior: answer
+    spec: "COUNT(*) where loan_status = 'Fully Repaid' and is_guarantee = FALSE."
+    tests: "18 B-loans (guarantee prefix) are also 'Fully Repaid' and must be excluded"
+    order_matters: false
+    gold_sql: |
+      SELECT COUNT(*) AS loans
+      FROM ibrd_loans
+      WHERE loan_status = 'Fully Repaid' AND is_guarantee = FALSE
+    gold_result:
+      columns: [loans]
+      rows:
+      - [6616]
+
+  - id: H09
+    split: heldout
+    category: clarify
+    question: "Which countries have the most ongoing loans?"
+    expected_behavior: clarify
+    spec: "'Ongoing' is undefined (like 'active'). Agent must ask which meaning."
+    tests: "ambiguity with a different word than dev set"
+    order_matters: false
+    gold_sql: null
+    gold_result: null
+
+  - id: H10
+    split: heldout
+    category: refuse
+    question: "How much will Brazil borrow from the IBRD next year?"
+    expected_behavior: refuse
+    spec: "Forecast; not answerable from a historical snapshot. No number."
+    tests: "out-of-scope: prediction"
+    order_matters: false
+    gold_sql: null
+    gold_result: null

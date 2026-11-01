@@ -1,0 +1,1386 @@
+# Data dictionary for table ibrd_loans: the single source of truth for the prompt and the README.
+# Descriptions are verbatim from the official metadata (data/raw/metadata_DS00047.json).
+# scripts/build_db.py reads the column mapping (original_name -> column, type) from this file.
+dataset:
+  name: IBRD Statement of Loans and Guarantees - Latest Available Snapshot
+  id: DS00047
+  table: ibrd_loans
+  source_url: https://financesone.worldbank.org/ibrd-statement-of-loans-and-guarantees-latest-available-snapshot/DS00047
+  metadata_file: data/raw/metadata_DS00047.json
+  raw_file: data/raw/ibrd_snapshot_2026-09-30.csv
+  license: Creative Commons Attribution 4.0 International
+  end_of_period: '2026-09-30'
+  rows: 9538
+  description: 'Note: IDs starting with IBRDB and IBRDG are "Guarantees" and the rest are "Loans". The loan types are as follows:
+    NPL (Non-Pool Loan), CPL (Currency Pool Loan), SCPD (Single Currency Pool Loan - US), SCPM (Single Currency Pool Loan
+    - EU), SCPY (Single Currency Pool Loan - YE), SCL (Single Currency Loan), FSL (Fixed Spread Loan), BLNR (IBRD Regular
+    B-Loans), GURB (IBRD Guarantees), BLNC (IBRD Contingency B Loan), and GUBF (IBRD Guarantee Facility). The International
+    Bank for Reconstruction and Development (IBRD) loans are public and publicly guaranteed debt extended by the World Bank
+    Group. IBRD loans are made to, or guaranteed by, countries / economies that are members of IBRD. IBRD may also make loans
+    to IFC. IBRD lends at market rates. Data are in U.S. dollars calculated using historical rates. This dataset contains
+    the latest available snapshot of the Statement of Loans. The World Bank complies with all sanctions applicable to World
+    Bank transactions.'
+columns:
+- column: end_of_period
+  original_name: End of Period
+  type: DATE
+  description: End of Period Date represents the date as of which balances are shown in the report.
+  source: official metadata DS00047
+  nulls: 0
+  allowed_values:
+  - '2026-09-30'
+- column: loan_number
+  original_name: Loan Number
+  type: VARCHAR
+  description: For IBRD, a loan number consists of the organization prefix (IBRD) and a five-character label that uniquely
+    identifies the loan within the organization. IDs starting with IBRDB and IBRDG are "Guarantees" and the rest are "Loans".
+  source: official metadata DS00047
+  nulls: 0
+  example_values:
+  - IBRD45620
+  - IBRD80840
+  - IBRD95380
+  known_quirks:
+  - 'Known quirk: prefixes IBRDK (62 rows, all FSL, recent) and IBRDS (21 rows, old NPL/CPL) are not documented.'
+  - 'Known quirk: 1,221 loan numbers end in a letter (e.g. IBRD2754S, IBRD3750A); the meaning is not documented.'
+- column: region
+  original_name: Region
+  type: VARCHAR
+  description: World Bank Region to which country / economy and loan belong. Country / Economy lending is grouped into regions
+    based on the current World Bank administrative (rather than geographic) region where project implementation takes place.
+    The Other Region is used for loans to IFC.
+  source: official metadata DS00047
+  nulls: 0
+  allowed_values:
+  - LATIN AMERICA AND CARIBBEAN
+  - EAST ASIA AND PACIFIC
+  - EUROPE AND CENTRAL ASIA
+  - MID EAST,NORTH AFRICA,AFG,PAK
+  - SOUTH ASIA
+  - EASTERN AND SOUTHERN AFRICA
+  - WESTERN AND CENTRAL AFRICA
+- column: country_code
+  original_name: Country / Economy Code
+  type: VARCHAR
+  description: Country / Economy Code according to the World Bank country / economy list. Might be different from the ISO
+    country / economy code.
+  source: official metadata DS00047
+  nulls: 0
+  allowed_values:
+  - 3E
+  - 3S
+  - 3W
+  - 6R
+  - AG
+  - AL
+  - AM
+  - AO
+  - AR
+  - AT
+  - AU
+  - AZ
+  - BA
+  - BB
+  - BD
+  - BE
+  - BG
+  - BI
+  - BO
+  - BR
+  - BS
+  - BT
+  - BW
+  - BY
+  - BZ
+  - CG
+  - CI
+  - CL
+  - CM
+  - CN
+  - CO
+  - CR
+  - CV
+  - CY
+  - CZ
+  - DK
+  - DM
+  - DO
+  - DZ
+  - EC
+  - EE
+  - EG
+  - ES
+  - ET
+  - FI
+  - FJ
+  - FR
+  - GA
+  - GD
+  - GE
+  - GH
+  - GN
+  - GR
+  - GT
+  - GY
+  - HN
+  - HR
+  - HT
+  - HU
+  - ID
+  - IE
+  - IL
+  - IN
+  - IQ
+  - IR
+  - IS
+  - IT
+  - JM
+  - JO
+  - JP
+  - KE
+  - KN
+  - KR
+  - KZ
+  - LB
+  - LC
+  - LK
+  - LR
+  - LS
+  - LT
+  - LU
+  - LV
+  - MA
+  - MD
+  - ME
+  - MG
+  - MK
+  - MM
+  - MN
+  - MR
+  - MT
+  - MU
+  - MW
+  - MX
+  - MY
+  - MZ
+  - NA
+  - NG
+  - NI
+  - NL
+  - 'NO'
+  - NZ
+  - OM
+  - PA
+  - PE
+  - PG
+  - PH
+  - PK
+  - PL
+  - PT
+  - PY
+  - RO
+  - RU
+  - SC
+  - SD
+  - SG
+  - SI
+  - SK
+  - SL
+  - SN
+  - SR
+  - SV
+  - SY
+  - SZ
+  - TD
+  - TG
+  - TH
+  - TM
+  - TN
+  - TP
+  - TR
+  - TT
+  - TW
+  - TZ
+  - UA
+  - UG
+  - UY
+  - UZ
+  - VC
+  - VE
+  - VN
+  - XK
+  - YF
+  - YU
+  - ZA
+  - ZM
+  - ZR
+  - ZW
+- column: country
+  original_name: Country / Economy
+  type: VARCHAR
+  description: Country / Economy to which loan has been issued. Loans to the IFC are included under the country / economy
+    "World".
+  source: official metadata DS00047
+  nulls: 0
+  allowed_values:
+  - value: Albania
+    country_code: AL
+    region: EUROPE AND CENTRAL ASIA
+  - value: Algeria
+    country_code: DZ
+    region: MID EAST,NORTH AFRICA,AFG,PAK
+  - value: Angola
+    country_code: AO
+    region: EASTERN AND SOUTHERN AFRICA
+  - value: Antigua and Barbuda
+    country_code: AG
+    region: LATIN AMERICA AND CARIBBEAN
+  - value: Argentina
+    country_code: AR
+    region: LATIN AMERICA AND CARIBBEAN
+  - value: Armenia
+    country_code: AM
+    region: EUROPE AND CENTRAL ASIA
+  - value: Australia
+    country_code: AU
+    region: EAST ASIA AND PACIFIC
+  - value: Austria
+    country_code: AT
+    region: EUROPE AND CENTRAL ASIA
+  - value: Azerbaijan
+    country_code: AZ
+    region: EUROPE AND CENTRAL ASIA
+  - value: Bahamas, The
+    country_code: BS
+    region: LATIN AMERICA AND CARIBBEAN
+  - value: Bangladesh
+    country_code: BD
+    region: SOUTH ASIA
+  - value: Barbados
+    country_code: BB
+    region: LATIN AMERICA AND CARIBBEAN
+  - value: Belarus
+    country_code: BY
+    region: EUROPE AND CENTRAL ASIA
+  - value: Belgium
+    country_code: BE
+    region: EUROPE AND CENTRAL ASIA
+  - value: Belize
+    country_code: BZ
+    region: LATIN AMERICA AND CARIBBEAN
+  - value: Bhutan
+    country_code: BT
+    region: SOUTH ASIA
+  - value: Bolivia
+    country_code: BO
+    region: LATIN AMERICA AND CARIBBEAN
+  - value: Bosnia and Herzegovina
+    country_code: BA
+    region: EUROPE AND CENTRAL ASIA
+  - value: Botswana
+    country_code: BW
+    region: EASTERN AND SOUTHERN AFRICA
+  - value: Brazil
+    country_code: BR
+    region: LATIN AMERICA AND CARIBBEAN
+  - value: Bulgaria
+    country_code: BG
+    region: EUROPE AND CENTRAL ASIA
+  - value: Burundi
+    country_code: BI
+    region: EASTERN AND SOUTHERN AFRICA
+  - value: Cabo Verde
+    country_code: CV
+    region: WESTERN AND CENTRAL AFRICA
+  - value: Cameroon
+    country_code: CM
+    region: WESTERN AND CENTRAL AFRICA
+  - value: Caribbean
+    country_code: 6R
+    region: LATIN AMERICA AND CARIBBEAN
+  - value: Chad
+    country_code: TD
+    region: WESTERN AND CENTRAL AFRICA
+  - value: Chile
+    country_code: CL
+    region: LATIN AMERICA AND CARIBBEAN
+  - value: China
+    country_code: CN
+    region: EAST ASIA AND PACIFIC
+  - value: Colombia
+    country_code: CO
+    region: LATIN AMERICA AND CARIBBEAN
+  - value: Congo, Democratic Republic of
+    country_code: ZR
+    region: EASTERN AND SOUTHERN AFRICA
+  - value: Congo, Republic of
+    country_code: CG
+    region: WESTERN AND CENTRAL AFRICA
+  - value: Costa Rica
+    country_code: CR
+    region: LATIN AMERICA AND CARIBBEAN
+  - value: Cote d'Ivoire
+    country_code: CI
+    region: WESTERN AND CENTRAL AFRICA
+  - value: Croatia
+    country_code: HR
+    region: EUROPE AND CENTRAL ASIA
+  - value: Cyprus
+    country_code: CY
+    region: EUROPE AND CENTRAL ASIA
+  - value: Czechia
+    country_code: CZ
+    region: EUROPE AND CENTRAL ASIA
+  - value: Denmark
+    country_code: DK
+    region: EUROPE AND CENTRAL ASIA
+  - value: Dominica
+    country_code: DM
+    region: LATIN AMERICA AND CARIBBEAN
+  - value: Dominican Republic
+    country_code: DO
+    region: LATIN AMERICA AND CARIBBEAN
+  - value: Eastern and Southern Africa
+    country_code: 3E
+    region: EASTERN AND SOUTHERN AFRICA
+  - value: Ecuador
+    country_code: EC
+    region: LATIN AMERICA AND CARIBBEAN
+  - value: Egypt, Arab Republic of
+    country_code: EG
+    region: MID EAST,NORTH AFRICA,AFG,PAK
+  - value: El Salvador
+    country_code: SV
+    region: LATIN AMERICA AND CARIBBEAN
+  - value: Estonia
+    country_code: EE
+    region: EUROPE AND CENTRAL ASIA
+  - value: Eswatini
+    country_code: SZ
+    region: EASTERN AND SOUTHERN AFRICA
+  - value: Ethiopia
+    country_code: ET
+    region: EASTERN AND SOUTHERN AFRICA
+  - value: Fiji
+    country_code: FJ
+    region: EAST ASIA AND PACIFIC
+  - value: Finland
+    country_code: FI
+    region: EUROPE AND CENTRAL ASIA
+  - value: France
+    country_code: FR
+    region: EUROPE AND CENTRAL ASIA
+  - value: Gabon
+    country_code: GA
+    region: WESTERN AND CENTRAL AFRICA
+  - value: Georgia
+    country_code: GE
+    region: EUROPE AND CENTRAL ASIA
+  - value: Ghana
+    country_code: GH
+    region: WESTERN AND CENTRAL AFRICA
+  - value: Greece
+    country_code: GR
+    region: EUROPE AND CENTRAL ASIA
+  - value: Grenada
+    country_code: GD
+    region: LATIN AMERICA AND CARIBBEAN
+  - value: Guatemala
+    country_code: GT
+    region: LATIN AMERICA AND CARIBBEAN
+  - value: Guinea
+    country_code: GN
+    region: WESTERN AND CENTRAL AFRICA
+  - value: Guyana
+    country_code: GY
+    region: LATIN AMERICA AND CARIBBEAN
+  - value: Haiti
+    country_code: HT
+    region: LATIN AMERICA AND CARIBBEAN
+  - value: Honduras
+    country_code: HN
+    region: LATIN AMERICA AND CARIBBEAN
+  - value: Hungary
+    country_code: HU
+    region: EUROPE AND CENTRAL ASIA
+  - value: Iceland
+    country_code: IS
+    region: EUROPE AND CENTRAL ASIA
+  - value: India
+    country_code: IN
+    region: SOUTH ASIA
+  - value: Indonesia
+    country_code: ID
+    region: EAST ASIA AND PACIFIC
+  - value: Iran, Islamic Republic of
+    country_code: IR
+    region: MID EAST,NORTH AFRICA,AFG,PAK
+  - value: Iraq
+    country_code: IQ
+    region: MID EAST,NORTH AFRICA,AFG,PAK
+  - value: Ireland
+    country_code: IE
+    region: EUROPE AND CENTRAL ASIA
+  - value: Israel
+    country_code: IL
+    region: MID EAST,NORTH AFRICA,AFG,PAK
+  - value: Italy
+    country_code: IT
+    region: EUROPE AND CENTRAL ASIA
+  - value: Jamaica
+    country_code: JM
+    region: LATIN AMERICA AND CARIBBEAN
+  - value: Japan
+    country_code: JP
+    region: EAST ASIA AND PACIFIC
+  - value: Jordan
+    country_code: JO
+    region: MID EAST,NORTH AFRICA,AFG,PAK
+  - value: Kazakhstan
+    country_code: KZ
+    region: EUROPE AND CENTRAL ASIA
+  - value: Kenya
+    country_code: KE
+    region: EASTERN AND SOUTHERN AFRICA
+  - value: Korea, Republic of
+    country_code: KR
+    region: EAST ASIA AND PACIFIC
+  - value: Kosovo
+    country_code: XK
+    region: EUROPE AND CENTRAL ASIA
+  - value: Latvia
+    country_code: LV
+    region: EUROPE AND CENTRAL ASIA
+  - value: Lebanon
+    country_code: LB
+    region: MID EAST,NORTH AFRICA,AFG,PAK
+  - value: Lesotho
+    country_code: LS
+    region: EASTERN AND SOUTHERN AFRICA
+  - value: Liberia
+    country_code: LR
+    region: WESTERN AND CENTRAL AFRICA
+  - value: Lithuania
+    country_code: LT
+    region: EUROPE AND CENTRAL ASIA
+  - value: Luxembourg
+    country_code: LU
+    region: EUROPE AND CENTRAL ASIA
+  - value: Madagascar
+    country_code: MG
+    region: EASTERN AND SOUTHERN AFRICA
+  - value: Malawi
+    country_code: MW
+    region: EASTERN AND SOUTHERN AFRICA
+  - value: Malaysia
+    country_code: MY
+    region: EAST ASIA AND PACIFIC
+  - value: Malta
+    country_code: MT
+    region: MID EAST,NORTH AFRICA,AFG,PAK
+  - value: Mauritania
+    country_code: MR
+    region: WESTERN AND CENTRAL AFRICA
+  - value: Mauritius
+    country_code: MU
+    region: EASTERN AND SOUTHERN AFRICA
+  - value: Mexico
+    country_code: MX
+    region: LATIN AMERICA AND CARIBBEAN
+  - value: Moldova
+    country_code: MD
+    region: EUROPE AND CENTRAL ASIA
+  - value: Mongolia
+    country_code: MN
+    region: EAST ASIA AND PACIFIC
+  - value: Montenegro
+    country_code: ME
+    region: EUROPE AND CENTRAL ASIA
+  - value: Morocco
+    country_code: MA
+    region: MID EAST,NORTH AFRICA,AFG,PAK
+  - value: Mozambique
+    country_code: MZ
+    region: EASTERN AND SOUTHERN AFRICA
+  - value: Myanmar
+    country_code: MM
+    region: EAST ASIA AND PACIFIC
+  - value: Namibia
+    country_code: NA
+    region: EASTERN AND SOUTHERN AFRICA
+  - value: Netherlands
+    country_code: NL
+    region: EUROPE AND CENTRAL ASIA
+  - value: New Zealand
+    country_code: NZ
+    region: EAST ASIA AND PACIFIC
+  - value: Nicaragua
+    country_code: NI
+    region: LATIN AMERICA AND CARIBBEAN
+  - value: Nigeria
+    country_code: NG
+    region: WESTERN AND CENTRAL AFRICA
+  - value: North Macedonia
+    country_code: MK
+    region: EUROPE AND CENTRAL ASIA
+  - value: Norway
+    country_code: 'NO'
+    region: EUROPE AND CENTRAL ASIA
+  - value: Oman
+    country_code: OM
+    region: MID EAST,NORTH AFRICA,AFG,PAK
+  - value: Pakistan
+    country_code: PK
+    region: MID EAST,NORTH AFRICA,AFG,PAK
+  - value: Panama
+    country_code: PA
+    region: LATIN AMERICA AND CARIBBEAN
+  - value: Papua New Guinea
+    country_code: PG
+    region: EAST ASIA AND PACIFIC
+  - value: Paraguay
+    country_code: PY
+    region: LATIN AMERICA AND CARIBBEAN
+  - value: Peru
+    country_code: PE
+    region: LATIN AMERICA AND CARIBBEAN
+  - value: Philippines
+    country_code: PH
+    region: EAST ASIA AND PACIFIC
+  - value: Poland
+    country_code: PL
+    region: EUROPE AND CENTRAL ASIA
+  - value: Portugal
+    country_code: PT
+    region: EUROPE AND CENTRAL ASIA
+  - value: Romania
+    country_code: RO
+    region: EUROPE AND CENTRAL ASIA
+  - value: Russian Federation
+    country_code: RU
+    region: EUROPE AND CENTRAL ASIA
+  - value: Senegal
+    country_code: SN
+    region: WESTERN AND CENTRAL AFRICA
+  - value: Serbia
+    country_code: YF
+    region: EUROPE AND CENTRAL ASIA
+  - value: Seychelles
+    country_code: SC
+    region: EASTERN AND SOUTHERN AFRICA
+  - value: Sierra Leone
+    country_code: SL
+    region: WESTERN AND CENTRAL AFRICA
+  - value: Singapore
+    country_code: SG
+    region: EAST ASIA AND PACIFIC
+  - value: Slovak Republic
+    country_code: SK
+    region: EUROPE AND CENTRAL ASIA
+  - value: Slovenia
+    country_code: SI
+    region: EUROPE AND CENTRAL ASIA
+  - value: South Africa
+    country_code: ZA
+    region: EASTERN AND SOUTHERN AFRICA
+  - value: Southern Africa
+    country_code: 3S
+    region: EASTERN AND SOUTHERN AFRICA
+  - value: Spain
+    country_code: ES
+    region: EUROPE AND CENTRAL ASIA
+  - value: Sri Lanka
+    country_code: LK
+    region: SOUTH ASIA
+  - value: St. Kitts and Nevis
+    country_code: KN
+    region: LATIN AMERICA AND CARIBBEAN
+  - value: St. Lucia
+    country_code: LC
+    region: LATIN AMERICA AND CARIBBEAN
+  - value: St. Vincent and the Grenadines
+    country_code: VC
+    region: LATIN AMERICA AND CARIBBEAN
+  - value: Sudan
+    country_code: SD
+    region: EASTERN AND SOUTHERN AFRICA
+  - value: Suriname
+    country_code: SR
+    region: LATIN AMERICA AND CARIBBEAN
+  - value: Syrian Arab Republic
+    country_code: SY
+    region: MID EAST,NORTH AFRICA,AFG,PAK
+  - value: Taiwan, China
+    country_code: TW
+    region: EAST ASIA AND PACIFIC
+  - value: Tanzania
+    country_code: TZ
+    region: EASTERN AND SOUTHERN AFRICA
+  - value: Thailand
+    country_code: TH
+    region: EAST ASIA AND PACIFIC
+  - value: Timor-Leste
+    country_code: TP
+    region: EAST ASIA AND PACIFIC
+  - value: Togo
+    country_code: TG
+    region: WESTERN AND CENTRAL AFRICA
+  - value: Trinidad and Tobago
+    country_code: TT
+    region: LATIN AMERICA AND CARIBBEAN
+  - value: Tunisia
+    country_code: TN
+    region: MID EAST,NORTH AFRICA,AFG,PAK
+  - value: Turkiye
+    country_code: TR
+    region: EUROPE AND CENTRAL ASIA
+  - value: Turkmenistan
+    country_code: TM
+    region: EUROPE AND CENTRAL ASIA
+  - value: Uganda
+    country_code: UG
+    region: EASTERN AND SOUTHERN AFRICA
+  - value: Ukraine
+    country_code: UA
+    region: EUROPE AND CENTRAL ASIA
+  - value: Uruguay
+    country_code: UY
+    region: LATIN AMERICA AND CARIBBEAN
+  - value: Uzbekistan
+    country_code: UZ
+    region: EUROPE AND CENTRAL ASIA
+  - value: Venezuela, Republica Bolivariana de
+    country_code: VE
+    region: LATIN AMERICA AND CARIBBEAN
+  - value: Viet Nam
+    country_code: VN
+    region: EAST ASIA AND PACIFIC
+  - value: Western and Central Africa
+    country_code: 3W
+    region: WESTERN AND CENTRAL AFRICA
+  - value: Yugoslavia, former
+    country_code: YU
+    region: EUROPE AND CENTRAL ASIA
+  - value: Zambia
+    country_code: ZM
+    region: EASTERN AND SOUTHERN AFRICA
+  - value: Zimbabwe
+    country_code: ZW
+    region: EASTERN AND SOUTHERN AFRICA
+  known_quirks:
+  - 'Known quirk: 4 values are regional groupings, not countries (6R, 3E, 3S, 3W; 25 rows, FY1955-1994). See is_regional_entry.'
+- column: borrower
+  original_name: Borrower
+  type: VARCHAR
+  description: The representative of the borrower to which the Bank loan is made.
+  source: official metadata DS00047
+  nulls: 58
+  example_values:
+  - INV. & DEV. BK. OF MALAWI LTD.
+  - MINISTERSTWO ROLNICTWA
+  - MINISTRO DE HACIENDA
+  known_quirks:
+  - 'Known quirk: 58 rows have no borrower.'
+- column: guarantor_country_code
+  original_name: Guarantor Country / Economy Code
+  type: VARCHAR
+  description: Country / Economy Code of the Guarantor according to the World Bank country / economy list. Might be different
+    from the ISO country / economy code.
+  source: official metadata DS00047
+  nulls: 281
+  allowed_values:
+  - 3W
+  - 6R
+  - AG
+  - AL
+  - AM
+  - AO
+  - AR
+  - AU
+  - AZ
+  - BA
+  - BB
+  - BD
+  - BE
+  - BG
+  - BO
+  - BR
+  - BS
+  - BT
+  - BW
+  - BY
+  - BZ
+  - CG
+  - CI
+  - CL
+  - CM
+  - CN
+  - CO
+  - CR
+  - CV
+  - CY
+  - CZ
+  - DM
+  - DO
+  - DZ
+  - EC
+  - EE
+  - EG
+  - ET
+  - FJ
+  - FR
+  - GA
+  - GB
+  - GD
+  - GE
+  - GH
+  - GN
+  - GT
+  - GY
+  - HN
+  - HR
+  - HT
+  - HU
+  - ID
+  - IN
+  - IQ
+  - IR
+  - JM
+  - JO
+  - KE
+  - KN
+  - KR
+  - KZ
+  - LB
+  - LC
+  - LK
+  - LR
+  - LS
+  - LT
+  - LV
+  - MA
+  - MD
+  - ME
+  - MG
+  - MK
+  - MM
+  - MN
+  - MR
+  - MU
+  - MW
+  - MX
+  - MY
+  - MZ
+  - NA
+  - NG
+  - NI
+  - PA
+  - PE
+  - PG
+  - PH
+  - PK
+  - PL
+  - PY
+  - RO
+  - RU
+  - SC
+  - SD
+  - SI
+  - SK
+  - SL
+  - SN
+  - SR
+  - SV
+  - SY
+  - SZ
+  - TD
+  - TG
+  - TH
+  - TM
+  - TN
+  - TP
+  - TR
+  - TT
+  - TW
+  - TZ
+  - UA
+  - UG
+  - UY
+  - UZ
+  - VC
+  - VE
+  - VN
+  - XK
+  - YF
+  - ZA
+  - ZM
+  - ZR
+  - ZW
+  known_quirks:
+  - 'Known quirk: NULL for 281 rows.'
+- column: guarantor
+  original_name: Guarantor
+  type: VARCHAR
+  description: The Guarantor guarantees repayment to the Bank if the borrower does not repay.
+  source: official metadata DS00047
+  nulls: 281
+  allowed_values:
+  - Albania
+  - Algeria
+  - Angola
+  - Antigua and Barbuda
+  - Argentina
+  - Armenia
+  - Australia
+  - Azerbaijan
+  - Bahamas, The
+  - Bangladesh
+  - Barbados
+  - Belarus
+  - Belgium
+  - Belize
+  - Bhutan
+  - Bolivia
+  - Bosnia and Herzegovina
+  - Botswana
+  - Brazil
+  - Bulgaria
+  - Cabo Verde
+  - Cameroon
+  - Caribbean
+  - Chad
+  - Chile
+  - China
+  - Colombia
+  - Congo, Democratic Republic of
+  - Congo, Republic of
+  - Costa Rica
+  - Cote d'Ivoire
+  - Croatia
+  - Cyprus
+  - Czechia
+  - Dominica
+  - Dominican Republic
+  - Ecuador
+  - Egypt, Arab Republic of
+  - El Salvador
+  - Estonia
+  - Eswatini
+  - Ethiopia
+  - Fiji
+  - France
+  - Gabon
+  - Georgia
+  - Ghana
+  - Grenada
+  - Guatemala
+  - Guinea
+  - Guyana
+  - Haiti
+  - Honduras
+  - Hungary
+  - India
+  - Indonesia
+  - Iran, Islamic Republic of
+  - Iraq
+  - Jamaica
+  - Jordan
+  - Kazakhstan
+  - Kenya
+  - Korea, Republic of
+  - Kosovo
+  - Latvia
+  - Lebanon
+  - Lesotho
+  - Liberia
+  - Lithuania
+  - Madagascar
+  - Malawi
+  - Malaysia
+  - Mauritania
+  - Mauritius
+  - Mexico
+  - Moldova
+  - Mongolia
+  - Montenegro
+  - Morocco
+  - Mozambique
+  - Myanmar
+  - Namibia
+  - Nicaragua
+  - Nigeria
+  - North Macedonia
+  - Pakistan
+  - Panama
+  - Papua New Guinea
+  - Paraguay
+  - Peru
+  - Philippines
+  - Poland
+  - Romania
+  - Russian Federation
+  - Senegal
+  - Serbia
+  - Seychelles
+  - Sierra Leone
+  - Slovak Republic
+  - Slovenia
+  - South Africa
+  - Sri Lanka
+  - St. Kitts and Nevis
+  - St. Lucia
+  - St. Vincent and the Grenadines
+  - Sudan
+  - Suriname
+  - Syrian Arab Republic
+  - Taiwan, China
+  - Tanzania
+  - Thailand
+  - Timor-Leste
+  - Togo
+  - Trinidad and Tobago
+  - Tunisia
+  - Turkiye
+  - Turkmenistan
+  - Uganda
+  - Ukraine
+  - United Kingdom
+  - Uruguay
+  - Uzbekistan
+  - Venezuela, Republica Bolivariana de
+  - Viet Nam
+  - Western and Central Africa
+  - Zambia
+  - Zimbabwe
+  known_quirks:
+  - 'Known quirk: NULL for 281 rows; the meaning of NULL is not documented.'
+  - 'Known quirk: 52 rows have a guarantor country different from the borrower country (19 in Barbados).'
+  - 'Known quirk: United Kingdom (GB) guarantees 17 old NPL loans but is never a borrower country.'
+- column: loan_type
+  original_name: Loan Type
+  type: VARCHAR
+  description: A type of loan/loan instrument for which distinctive accounting and/or other actions need to be performed.
+    Please refer to the dataset description for the full form of loan type.
+  source: official metadata DS00047
+  nulls: 0
+  allowed_values:
+  - value: FSL
+    meaning: Fixed Spread Loan
+  - value: CPL
+    meaning: Currency Pool Loan
+  - value: NPL
+    meaning: Non-Pool Loan
+  - value: SCL
+    meaning: Single Currency Loan
+  - value: SCPD
+    meaning: Single Currency Pool Loan - US
+  - value: SCPM
+    meaning: Single Currency Pool Loan - EU
+  - value: GURB
+    meaning: IBRD Guarantees
+  - value: BLNR
+    meaning: IBRD Regular B-Loans
+  - value: SCPY
+    meaning: Single Currency Pool Loan - YE
+  - value: GUBF
+    meaning: IBRD Guarantee Facility
+  - value: BLNC
+    meaning: IBRD Contingency B Loan
+- column: loan_status
+  original_name: Loan Status
+  type: VARCHAR
+  description: Status of the loan.
+  source: official metadata DS00047
+  nulls: 0
+  allowed_values:
+  - Fully Repaid
+  - Repaying
+  - Disbursing
+  - Fully Disbursed
+  - Fully Cancelled
+  - Fully Transferred
+  - Disbursing&Repaying
+  - Terminated
+  - Approved
+  - Effective
+  - Signed
+  known_quirks:
+  - 'Known quirk: none of the status values is defined in official metadata.'
+  - 'Known quirk: there is no ''active'' status (see notes: no_active_status).'
+- column: interest_rate
+  original_name: Interest Rate
+  type: DOUBLE
+  description: Current Interest rate or service charge applied to loan. For loans that could have more than one interest rate
+    (e.g. FSL or SCL fixed rate loans), the interest rate is shown as "0".
+  source: official metadata DS00047
+  nulls: 109
+  example_values:
+  - 0.98
+  - 4.89
+  - 6.18
+  known_quirks:
+  - 'Known quirk: units are not documented; values 0.12-11.6 look like percent.'
+  - 'Known quirk: 0 for all FSL, 295 SCL and 61 CPL/NPL/GURB rows; 0 does not mean 0%.'
+  - 'Known quirk: NULL for 109 guarantee rows (GURB 80, BLNR 18, GUBF 9, BLNC 2).'
+- column: currency_of_commitment
+  original_name: Currency of Commitment
+  type: VARCHAR
+  description: The currency in which a borrower's loan, credit or grant is denominated.
+  source: official metadata DS00047
+  nulls: 9538
+  allowed_values: []
+  known_quirks:
+  - 'Known quirk: empty (0 non-null of 9,538) in this snapshot.'
+- column: project_id
+  original_name: Project ID
+  type: VARCHAR
+  description: A Bank project is referenced by a project ID (Pxxxxxxx). More than one loan, credit, or grant may be associated
+    with one Project ID.
+  source: official metadata DS00047
+  nulls: 0
+  example_values:
+  - P004259
+  - P005273
+  - P008713
+- column: project_name
+  original_name: Project Name
+  type: VARCHAR
+  description: Short descriptive project name.
+  source: official metadata DS00047
+  nulls: 26
+  example_values:
+  - EC-RURAL ROADS
+  - ED IV
+  - URBAN SEWERAGE III
+- column: original_principal_amount_usd
+  original_name: Original Principal Amount (US$)
+  type: DOUBLE
+  description: The original US dollar amount of the loan that is committed and approved.
+  source: official metadata DS00047
+  nulls: 0
+  example_values:
+  - 1534001.57
+  - 16420132.78
+  - 112650000.0
+  known_quirks:
+  - 'Known quirk: original = cancelled + undisbursed + disbursed fails (> $1) for 1,114 rows (1,064 FSL/SCL).'
+- column: cancelled_amount_usd
+  original_name: Cancelled Amount (US$)
+  type: DOUBLE
+  description: The portion of the undisbursed balance which has been cancelled (i.e. no longer available for future disbursement).
+    Cancellations include terminations (where approved loan agreements were never signed).
+  source: official metadata DS00047
+  nulls: 0
+  example_values:
+  - 321.27
+  - 264908.79
+  - 7385765.91
+- column: undisbursed_amount_usd
+  original_name: Undisbursed Amount (US$)
+  type: DOUBLE
+  description: The amount of a loan commitment that is still available to be drawn down. These currency amounts have been
+    converted to US dollars at the exchange rates applicable at the End of Period date.
+  source: official metadata DS00047
+  nulls: 0
+  example_values:
+  - 16764810.55
+  - 37346403.39
+  - 570000000.0
+- column: disbursed_amount_usd
+  original_name: Disbursed Amount (US$)
+  type: DOUBLE
+  description: The amount that has been disbursed from a loan commitment in equivalent US dollars calculated at the exchange
+    rate on the value date of the individual disbursements.
+  source: official metadata DS00047
+  nulls: 0
+  example_values:
+  - 9543457.46
+  - 48734940.14
+  - 91564202.84
+  data_check: 'Checked against the data: disbursed = repaid_to_ibrd + due_to_ibrd + sold_3rd_party holds for 9,337 rows; 201
+    fail (SCL Fully Repaid 188, BLNR Fully Repaid 10, SCL Repaying 3). Adding or subtracting exchange_adjustment makes it
+    worse (8,570 pass).'
+- column: repaid_to_ibrd_usd
+  original_name: Repaid to IBRD (US$)
+  type: DOUBLE
+  description: Total principal amounts paid or prepaid to IBRD in US dollars, calculated at the exchange rate on the value
+    date of the individual repayments.
+  source: official metadata DS00047
+  nulls: 0
+  example_values:
+  - 2415695.57
+  - 13252823.0
+  - 40425000.0
+- column: due_to_ibrd_usd
+  original_name: Due to IBRD (US$)
+  type: DOUBLE
+  description: Where the exchange adjustment is shown separately, this is the amount disbursed and outstanding expressed as
+    a stock of debt in historical US Dollars. Otherwise, this is the amount due and outstanding as of the End of Period date.
+  source: official metadata DS00047
+  nulls: 0
+  example_values:
+  - 19788482.53
+  - 43008188.91
+  - 344342800.0
+  known_quirks:
+  - 'Known quirk: negative for 51 rows (min -106.7M), offset by exchange_adjustment_usd. Not the outstanding balance.'
+- column: exchange_adjustment_usd
+  original_name: Exchange Adjustment (US$)
+  type: DOUBLE
+  description: The increase (decrease) in value of disbursed and outstanding amount due to exchange rate fluctuations. This
+    amount added to "Due to IBRD" yields "Borrower's Obligation; includes exchange adjustments on the amounts Due to 3rd parties.
+  source: official metadata DS00047
+  nulls: 0
+  example_values:
+  - -23218035.77
+  - -19271081.81
+  - -272153.15
+- column: borrowers_obligation_usd
+  original_name: Borrower's Obligation (US$)
+  type: DOUBLE
+  description: "The Borrower Obligation is the outstanding balance for the loan as of the end of period date in US dollars\
+    \ equivalent. \n\nThe Borrower's Obligation includes the amounts outstanding Due to 3rd parties."
+  source: official metadata DS00047
+  nulls: 0
+  example_values:
+  - 35802200.26
+  - 111775524.6
+  - 175000000.0
+  data_check: 'Checked against the data: equals due_to_ibrd_usd + exchange_adjustment_usd for all 9,538 rows.'
+- column: sold_3rd_party_usd
+  original_name: Sold 3rd Party (US$)
+  type: DOUBLE
+  description: Portion of loan sold to a third party.
+  source: official metadata DS00047
+  nulls: 0
+  example_values:
+  - 377729.84
+  - 1049872.85
+  - 2145089.41
+  data_check: 'Checked against the data: equals repaid_3rd_party_usd + due_3rd_party_usd for all 9,538 rows.'
+- column: repaid_3rd_party_usd
+  original_name: Repaid 3rd Party (US$)
+  type: DOUBLE
+  description: Amount repaid to a third party.
+  source: official metadata DS00047
+  nulls: 0
+  example_values:
+  - 377729.84
+  - 1049872.85
+  - 2145089.41
+- column: due_3rd_party_usd
+  original_name: Due 3rd Party (US$)
+  type: DOUBLE
+  description: Amount due to a third party.
+  source: official metadata DS00047
+  nulls: 0
+  example_values:
+  - 0.0
+- column: loans_held_usd
+  original_name: Loans Held (US$)
+  type: DOUBLE
+  description: The sum of the disbursed and outstanding amounts (net of repayments, i.e. Due to IBRD) plus undisbursed available
+    amounts.
+  source: official metadata DS00047
+  nulls: 0
+  example_values:
+  - 36743420.69
+  - 229675500.52
+  - 238629411.64
+  data_check: 'Checked against the data: equals due_to_ibrd_usd + undisbursed_amount_usd for all 9,538 rows.'
+  known_quirks:
+  - 'Known quirk: negative for 56 rows (min -106.7M) because due_to_ibrd_usd is negative.'
+  - 'Known quirk: includes guarantee exposure (8.3B on guarantee rows) with nothing disbursed.'
+- column: first_repayment_date
+  original_name: First Repayment Date
+  type: DATE
+  description: The date on which principal repayment starts.
+  source: official metadata DS00047
+  nulls: 61
+  example_values:
+  - '1962-10-15'
+  - '1977-05-01'
+  - '1985-06-01'
+- column: last_repayment_date
+  original_name: Last Repayment Date
+  type: DATE
+  description: The date specified in the loan/credit agreement (amended for any partial prepayments) on which the last principal
+    installment must be repaid by the Borrower.
+  source: official metadata DS00047
+  nulls: 60
+  example_values:
+  - '1957-09-15'
+  - '2007-05-15'
+  - '2047-02-15'
+- column: agreement_signing_date
+  original_name: Agreement Signing Date
+  type: DATE
+  description: The date the borrower and the Bank sign the loan agreement.
+  source: official metadata DS00047
+  nulls: 0
+  example_values:
+  - '1990-01-23'
+  - '1994-11-21'
+  - '2026-04-11'
+  known_quirks:
+  - 'Known quirk: 177 rows are signed before board_approval_date.'
+- column: board_approval_date
+  original_name: Board Approval Date
+  type: DATE
+  description: The date the World Bank approves the loan.
+  source: official metadata DS00047
+  nulls: 0
+  example_values:
+  - '1963-04-25'
+  - '1986-04-01'
+  - '1997-05-06'
+- column: effective_date_most_recent
+  original_name: Effective Date (Most Recent)
+  type: DATE
+  description: The date on which a legal agreement becomes effective, or is expected to become effective.
+  source: official metadata DS00047
+  nulls: 0
+  example_values:
+  - '2017-12-28'
+  - '2022-02-11'
+  - '2023-07-07'
+- column: closed_date_most_recent
+  original_name: Closed Date (Most Recent)
+  type: DATE
+  description: The date specified in the legal agreement (or extension) after which the Bank may, by notice to the borrower,
+    terminate the right to make withdrawals from the loan account.
+  source: official metadata DS00047
+  nulls: 8
+  example_values:
+  - '1962-05-31'
+  - '1998-09-30'
+  - '2013-07-15'
+- column: last_disbursement_date
+  original_name: Last Disbursement Date
+  type: DATE
+  description: The date on which the last disbursement was made (prior to the end of period date).
+  source: official metadata DS00047
+  nulls: 3592
+  example_values:
+  - '1999-07-21'
+  - '2006-06-22'
+  - '2018-11-06'
+  known_quirks:
+  - 'Known quirk: 2 rows (IBRD99530, IBRD99740) are dated after end_of_period.'
+- column: board_approval_fy
+  original_name: Board approval - Fiscal year
+  type: INTEGER
+  description: Fiscal Year is derived from the Board Approval Date.
+  source: official metadata DS00047
+  nulls: 0
+  example_values:
+  - 1982
+  - 1994
+  - 1995
+  data_check: 'Checked against the data: fy = year(board_approval_date) + 1 if month >= 7, for all 9,538 rows. FY2027 is partial
+    (44 loans, 2026-07-01 to 2026-09-30).'
+- column: board_approval_cy
+  original_name: Board approval - Calendar year
+  type: INTEGER
+  description: Calendar Year is derived from the Board Approval Date.
+  source: official metadata DS00047
+  nulls: 0
+  example_values:
+  - 1977
+  - 1994
+  - 1995
+  data_check: 'Checked against the data: equals year(board_approval_date) for all rows.'
+- column: is_guarantee
+  original_name: null
+  type: BOOLEAN
+  description: 'Derived: TRUE when loan_number starts with IBRDB or IBRDG. Official rule (dataset description): "IDs starting
+    with IBRDB and IBRDG are Guarantees and the rest are Loans."'
+  source: derived in scripts/build_db.py from the official rule
+  nulls: 0
+  allowed_values:
+  - true
+  - false
+  data_check: '113 TRUE (IBRDB 56, IBRDG 57). Loan types under TRUE: GURB 84, BLNR 18, GUBF 9, BLNC 2. No GURB/GUBF/BLNR/BLNC
+    row has is_guarantee = FALSE.'
+  known_quirks:
+  - 'Known quirk: includes 20 B-loans (BLNR 18, BLNC 2) because they carry the IBRDB prefix.'
+- column: is_regional_entry
+  original_name: null
+  type: BOOLEAN
+  description: 'Derived: TRUE when country_code contains a digit. In this snapshot that is exactly 6R Caribbean, 3E Eastern
+    and Southern Africa, 3S Southern Africa, 3W Western and Central Africa: multi-country regional groupings, not countries.'
+  source: derived in scripts/build_db.py
+  nulls: 0
+  allowed_values:
+  - true
+  - false
+  data_check: 25 TRUE. build_db.py hard-checks the row count and the 4 codes.
+notes:
+- id: outstanding_balance
+  type: rule
+  note: 'Outstanding/owed balance = borrowers_obligation_usd (official: due_to_ibrd_usd + exchange_adjustment_usd). Never
+    use due_to_ibrd_usd alone for ''outstanding'' or ''owed''.'
+- id: no_derived_amounts
+  type: rule
+  note: 'Always use stored amount columns directly. Never derive amounts by arithmetic: original = cancelled + undisbursed
+    + disbursed fails for 1,114 rows (mostly FSL/SCL).'
+- id: interest_rate
+  type: rule
+  note: interest_rate 0 means multiple rates (all FSL, some others), not 0%. NULL = guarantees. Averages use only interest_rate
+    > 0 and the answer says so. Values look like percent; units are not documented. The answer must also say it is an unweighted
+    average over loans with a single reported rate, mostly older loans, and that multiple-rate loans (all FSL, some SCL) are not included.
+- id: regional_entries
+  type: rule
+  note: Country rankings exclude is_regional_entry rows by default and say so. 'Southern Africa' (regional, 3S) is not 'South
+    Africa' (ZA).
+- id: guarantees_excluded
+  type: rule
+  note: Loan questions exclude is_guarantee rows by default and say so. The official prefix rule (IBRDB/IBRDG) also includes
+    20 B-loans (BLNR 18, BLNC 2).
+- id: fiscal_year
+  type: rule
+  note: 'Default ''year'' = board_approval_fy (Jul-Jun; FY2024 = Jul 2023-Jun 2024). FY2027 is partial (Jul-Sep 2026, 44 loans):
+    flag it whenever a question touches FY2027.'
+- id: no_active_status
+  type: rule
+  note: 'There is no ''active'' status. If a question says ''active'', ask: still disbursing, or has an outstanding balance?'
+- id: loans_held_includes_guarantees
+  type: rule
+  note: loans_held_usd includes guarantee exposure (8.3B on guarantee rows).
+- id: exact_category_values
+  type: rule
+  note: Use exact strings from allowed_values, e.g. 'MID EAST,NORTH AFRICA,AFG,PAK', 'Disbursing&Repaying', 'Turkiye', 'Korea,
+    Republic of', 'Egypt, Arab Republic of', 'Cote d'Ivoire'.
+- id: count_projects_distinct
+  type: rule
+  note: One row per loan_number; a project_id can have up to 14 loans. Count projects with COUNT(DISTINCT project_id).
+- id: terminated_vs_cancelled
+  type: rule
+  note: Terminated = approved but never signed; officially counted as cancellations. If the question names the exact status
+    ('fully cancelled'), match exactly. If it says 'cancelled loans' generally, include Terminated and say so.
+- id: approved_vs_disbursed
+  type: rule
+  note: 'Approved/committed/loan amount = original_principal_amount_usd. Received/disbursed = disbursed_amount_usd. ''Borrowed''
+    is ambiguous: state which was used.'
+- id: historical_usd
+  type: fact
+  note: Amounts are US$ at historical exchange rates, except undisbursed_amount_usd (End of Period rates).
+- id: region_is_current
+  type: fact
+  note: region is the current World Bank administrative region, even for old loans.
+- id: currency_of_commitment_empty
+  type: fact
+  note: currency_of_commitment is NULL for every row; it cannot answer currency questions.
+- id: no_world_or_other
+  type: fact
+  note: Official metadata mentions country 'World' and region 'Other' for IFC loans; neither appears in this snapshot.
+- id: rounding_negatives
+  type: fact
+  note: 'Tiny negatives are rounding noise: undisbursed_amount_usd (min -0.01), borrowers_obligation_usd (min -0.03).'
+- id: loan_status_undocumented
+  type: quirk
+  note: 'Known quirk: none of the 11 loan_status values is defined in official metadata.'
+- id: loan_number_formats
+  type: quirk
+  note: 'Known quirk: IBRDK/IBRDS prefixes and trailing letters (1,221 rows) are not documented; no number starts IBRD5 or
+    IBRD6.'
