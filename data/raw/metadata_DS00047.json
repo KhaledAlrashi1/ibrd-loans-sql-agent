@@ -1,0 +1,313 @@
+{
+  "id": "DS00047",
+  "object_type": "DATASET",
+  "title": "IBRD Statement of Loans and Guarantees - Latest Available Snapshot",
+  "description": "<p>Note:&nbsp;IDs&nbsp;starting&nbsp;with&nbsp;IBRDB&nbsp;and&nbsp;IBRDG&nbsp;are&nbsp;&quot;Guarantees&quot;&nbsp;and&nbsp;the&nbsp;rest&nbsp;are&nbsp;&quot;Loans&quot;.</p><p></p><p>The&nbsp;loan&nbsp;types&nbsp;are&nbsp;as&nbsp;follows:&nbsp;NPL&nbsp;(Non-Pool&nbsp;Loan),&nbsp;CPL&nbsp;(Currency&nbsp;Pool&nbsp;Loan),&nbsp;SCPD&nbsp;(Single&nbsp;Currency&nbsp;Pool&nbsp;Loan&nbsp;-&nbsp;US),&nbsp;SCPM&nbsp;(Single&nbsp;Currency&nbsp;Pool&nbsp;Loan&nbsp;-&nbsp;EU),&nbsp;SCPY&nbsp;(Single&nbsp;Currency&nbsp;Pool&nbsp;Loan&nbsp;-&nbsp;YE),&nbsp;SCL&nbsp;(Single&nbsp;Currency&nbsp;Loan),&nbsp;FSL&nbsp;(Fixed&nbsp;Spread&nbsp;Loan),&nbsp;BLNR&nbsp;(IBRD&nbsp;Regular&nbsp;B-Loans),&nbsp;GURB&nbsp;(IBRD&nbsp;Guarantees),&nbsp;BLNC&nbsp;(IBRD&nbsp;Contingency&nbsp;B&nbsp;Loan),&nbsp;and&nbsp;GUBF&nbsp;(IBRD&nbsp;Guarantee&nbsp;Facility).</p><p></p><p>The&nbsp;International&nbsp;Bank&nbsp;for&nbsp;Reconstruction&nbsp;and&nbsp;Development&nbsp;(IBRD)&nbsp;loans&nbsp;are&nbsp;public&nbsp;and&nbsp;publicly&nbsp;guaranteed&nbsp;debt&nbsp;extended&nbsp;by&nbsp;the&nbsp;World&nbsp;Bank&nbsp;Group.&nbsp;IBRD&nbsp;loans&nbsp;are&nbsp;made&nbsp;to,&nbsp;or&nbsp;guaranteed&nbsp;by,&nbsp;countries&nbsp;/&nbsp;economies&nbsp;that&nbsp;are&nbsp;members&nbsp;of&nbsp;IBRD.&nbsp;IBRD&nbsp;may&nbsp;also&nbsp;make&nbsp;loans&nbsp;to&nbsp;IFC.&nbsp;IBRD&nbsp;lends&nbsp;at&nbsp;market&nbsp;rates.&nbsp;Data&nbsp;are&nbsp;in&nbsp;U.S.&nbsp;dollars&nbsp;calculated&nbsp;using&nbsp;historical&nbsp;rates.&nbsp;This&nbsp;dataset&nbsp;contains&nbsp;the&nbsp;latest&nbsp;available&nbsp;snapshot&nbsp;of&nbsp;the&nbsp;Statement&nbsp;of&nbsp;Loans.&nbsp;The&nbsp;World&nbsp;Bank&nbsp;complies&nbsp;with&nbsp;all&nbsp;sanctions&nbsp;applicable&nbsp;to&nbsp;World&nbsp;Bank&nbsp;transactions.</p>",
+  "category": "Loans and Credits",
+  "provenance": "official",
+  "data_as_of": "2026-09-30",
+  "view_count": 129615,
+  "download_count": 17239,
+  "data_provided_by": "World Bank Group",
+  "owner": "financesone@worldbank.org",
+  "date_created": "2011-05-16T23:08:17Z",
+  "last_updated": "2026-10-31T05:47:43Z",
+  "license": "Creative Commons Attribution 4.0 International",
+  "type": "Time Series",
+  "row_label": "Loan,Guarantee",
+  "source": "World Bank Group",
+  "periodicity": "Month",
+  "granularity": "Other",
+  "update_frequency": "Monthly",
+  "economic_coverage": "World",
+  "range_column": "end_of_period, board_approval_date",
+  "general_access_option": "Query tool,API,Mobile App,Bulk download",
+  "language": "English",
+  "update_schedule": "By 10th business day of each month",
+  "data_last_updated": "2026-10-31T05:47:43Z",
+  "metadata_last_updated": "7/23/2026 5:47:25 AM",
+  "countries": [],
+  "tags": [
+    {
+      "id": null,
+      "name": "country level"
+    },
+    {
+      "id": null,
+      "name": "disbursement"
+    },
+    {
+      "id": null,
+      "name": "commitment"
+    },
+    {
+      "id": null,
+      "name": "region level"
+    },
+    {
+      "id": null,
+      "name": "countries section"
+    },
+    {
+      "id": null,
+      "name": "lending"
+    }
+  ],
+  "row_count": 9538,
+  "column_count": 35,
+  "first_release_date": "5/16/2011 11:08:17 PM",
+  "parent_id": null,
+  "data_classification_name": "Public",
+  "point_of_contact": "Finances One",
+  "institutions": [
+    "IBRD",
+    "IDA"
+  ],
+  "column_details": [
+    {
+      "column_name": "agreement_signing_date",
+      "column_business_name": "Agreement Signing Date",
+      "column_datatype": "DATE",
+      "column_description": "The date the borrower and the Bank sign the loan agreement.",
+      "column_position": "29"
+    },
+    {
+      "column_name": "board_approval_date",
+      "column_business_name": "Board Approval Date",
+      "column_datatype": "DATE",
+      "column_description": "The date the World Bank approves the loan. ",
+      "column_position": "30"
+    },
+    {
+      "column_name": "borrower",
+      "column_business_name": "Borrower",
+      "column_datatype": "STRING",
+      "column_description": "The representative of the borrower to which the Bank loan is made. ",
+      "column_position": "6"
+    },
+    {
+      "column_name": "borrowers_obligation",
+      "column_business_name": "Borrower's Obligation (US$)",
+      "column_datatype": "NUMBER",
+      "column_description": "The Borrower Obligation is the outstanding balance for the loan as of the end of period date in US dollars equivalent. \n\nThe Borrower's Obligation includes the amounts outstanding Due to 3rd parties.",
+      "column_position": "22"
+    },
+    {
+      "column_name": "board_approval___fiscal_year",
+      "column_business_name": "Board approval - Fiscal year",
+      "column_datatype": "NUMBER",
+      "column_description": "Fiscal Year is derived from the Board Approval Date.",
+      "column_position": "34"
+    },
+    {
+      "column_name": "board_approval___calendar_year",
+      "column_business_name": "Board approval - Calendar year",
+      "column_datatype": "NUMBER",
+      "column_description": "Calendar Year is derived from the Board Approval Date.",
+      "column_position": "35"
+    },
+    {
+      "column_name": "cancelled_amount",
+      "column_business_name": "Cancelled Amount (US$)",
+      "column_datatype": "NUMBER",
+      "column_description": "The portion of the undisbursed balance which has been cancelled (i.e. no longer available for future disbursement).  Cancellations include terminations (where approved loan agreements were never signed).",
+      "column_position": "16"
+    },
+    {
+      "column_name": "closed_date_most_recent",
+      "column_business_name": "Closed Date (Most Recent)",
+      "column_datatype": "DATE",
+      "column_description": "The date specified in the legal agreement (or extension) after which the Bank may, by notice to the borrower, terminate the right to make withdrawals from the loan account.",
+      "column_position": "32"
+    },
+    {
+      "column_name": "country",
+      "column_business_name": "Country / Economy",
+      "column_datatype": "STRING",
+      "column_description": "Country / Economy to which loan has been issued. Loans to the IFC are included under the country / economy “World”.",
+      "column_position": "5"
+    },
+    {
+      "column_name": "country_code",
+      "column_business_name": "Country / Economy Code",
+      "column_datatype": "STRING",
+      "column_description": "Country / Economy Code according to the World Bank country / economy list. Might be different from the ISO country / economy code.",
+      "column_position": "4"
+    },
+    {
+      "column_name": "currency_of_commitment",
+      "column_business_name": "Currency of Commitment",
+      "column_datatype": "STRING",
+      "column_description": "The currency in which a borrower’s loan, credit or grant is denominated.",
+      "column_position": "12"
+    },
+    {
+      "column_name": "disbursed_amount",
+      "column_business_name": "Disbursed Amount (US$)",
+      "column_datatype": "NUMBER",
+      "column_description": "The amount that has been disbursed from a loan commitment in equivalent US dollars calculated at the exchange rate on the value date of the individual disbursements.",
+      "column_position": "18"
+    },
+    {
+      "column_name": "due_3rd_party",
+      "column_business_name": "Due 3rd Party (US$)",
+      "column_datatype": "NUMBER",
+      "column_description": "Amount due to a third party.",
+      "column_position": "25"
+    },
+    {
+      "column_name": "due_to_ibrd",
+      "column_business_name": "Due to IBRD (US$)",
+      "column_datatype": "NUMBER",
+      "column_description": "Where the exchange adjustment is shown separately, this is the amount disbursed and outstanding expressed as a stock of debt in historical US Dollars.   Otherwise, this is the amount due and outstanding as of the End of Period date.",
+      "column_position": "20"
+    },
+    {
+      "column_name": "effective_date_most_recent",
+      "column_business_name": "Effective Date (Most Recent)",
+      "column_datatype": "DATE",
+      "column_description": "The date on which a legal agreement becomes effective, or is expected to become effective.",
+      "column_position": "31"
+    },
+    {
+      "column_name": "end_of_period",
+      "column_business_name": "End of Period",
+      "column_datatype": "DATE",
+      "column_description": "End of Period Date represents the date as of which balances are shown in the report.",
+      "column_position": "1"
+    },
+    {
+      "column_name": "exchange_adjustment",
+      "column_business_name": "Exchange Adjustment (US$)",
+      "column_datatype": "NUMBER",
+      "column_description": "The increase (decrease) in value of disbursed and outstanding amount due to exchange rate fluctuations.  This amount added to “Due to IBRD” yields “Borrower’s Obligation; includes exchange adjustments on the amounts Due to 3rd parties.",
+      "column_position": "21"
+    },
+    {
+      "column_name": "first_repayment_date",
+      "column_business_name": "First Repayment Date",
+      "column_datatype": "DATE",
+      "column_description": "The date on which principal repayment starts.",
+      "column_position": "27"
+    },
+    {
+      "column_name": "guarantor",
+      "column_business_name": "Guarantor",
+      "column_datatype": "STRING",
+      "column_description": "The Guarantor guarantees repayment to the Bank if the borrower does not repay. ",
+      "column_position": "8"
+    },
+    {
+      "column_name": "guarantor_country_code",
+      "column_business_name": "Guarantor Country / Economy Code",
+      "column_datatype": "STRING",
+      "column_description": "Country / Economy Code of the Guarantor according to the World Bank country / economy list. Might be different from the ISO country / economy code.",
+      "column_position": "7"
+    },
+    {
+      "column_name": "interest_rate",
+      "column_business_name": "Interest Rate",
+      "column_datatype": "NUMBER",
+      "column_description": "Current Interest rate or service charge applied to loan.  For loans that could have more than one interest rate (e.g. FSL or SCL fixed rate loans), the interest rate is shown as “0”. ",
+      "column_position": "11"
+    },
+    {
+      "column_name": "last_disbursement_date",
+      "column_business_name": "Last Disbursement Date",
+      "column_datatype": "DATE",
+      "column_description": "The date on which the last disbursement was made (prior to the end of period date).",
+      "column_position": "33"
+    },
+    {
+      "column_name": "last_repayment_date",
+      "column_business_name": "Last Repayment Date",
+      "column_datatype": "DATE",
+      "column_description": "The date specified in the loan/credit agreement (amended for any partial prepayments) on which the last principal installment must be repaid by the Borrower.",
+      "column_position": "28"
+    },
+    {
+      "column_name": "loan_number",
+      "column_business_name": "Loan Number",
+      "column_datatype": "STRING",
+      "column_description": "For IBRD, a loan number consists of the organization prefix (IBRD) and a five-character label that uniquely identifies the loan within the organization.  IDs starting with IBRDB and IBRDG are \"Guarantees\" and the rest are \"Loans\".",
+      "column_position": "2"
+    },
+    {
+      "column_name": "loan_status",
+      "column_business_name": "Loan Status",
+      "column_datatype": "STRING",
+      "column_description": "Status of the loan.  ",
+      "column_position": "10"
+    },
+    {
+      "column_name": "loan_type",
+      "column_business_name": "Loan Type",
+      "column_datatype": "STRING",
+      "column_description": "A type of loan/loan instrument for which distinctive accounting and/or other actions need to be performed.  Please refer to the dataset description for the full form of loan type.",
+      "column_position": "9"
+    },
+    {
+      "column_name": "loans_held",
+      "column_business_name": "Loans Held (US$)",
+      "column_datatype": "NUMBER",
+      "column_description": "The sum of the disbursed and outstanding amounts (net of repayments, i.e.  Due to IBRD) plus undisbursed available amounts.",
+      "column_position": "26"
+    },
+    {
+      "column_name": "original_principal_amount",
+      "column_business_name": "Original Principal Amount (US$)",
+      "column_datatype": "NUMBER",
+      "column_description": "The original US dollar amount of the loan that is committed and approved. ",
+      "column_position": "15"
+    },
+    {
+      "column_name": "project_id",
+      "column_business_name": "Project ID",
+      "column_datatype": "STRING",
+      "column_description": "A Bank project is referenced by a project ID (Pxxxxxxx).  More than one loan, credit, or grant may be associated with one Project ID. ",
+      "column_position": "13"
+    },
+    {
+      "column_name": "project_name",
+      "column_business_name": "Project Name",
+      "column_datatype": "STRING",
+      "column_description": "Short descriptive project name.",
+      "column_position": "14"
+    },
+    {
+      "column_name": "region",
+      "column_business_name": "Region",
+      "column_datatype": "STRING",
+      "column_description": "World Bank Region to which country / economy and loan belong. Country / Economy lending is grouped into regions based on the current World Bank administrative (rather than geographic) region where project implementation takes place. The Other Region is used for loans to IFC.",
+      "column_position": "3"
+    },
+    {
+      "column_name": "repaid_3rd_party",
+      "column_business_name": "Repaid 3rd Party (US$)",
+      "column_datatype": "NUMBER",
+      "column_description": "Amount repaid to a third party.",
+      "column_position": "24"
+    },
+    {
+      "column_name": "repaid_to_ibrd",
+      "column_business_name": "Repaid to IBRD (US$)",
+      "column_datatype": "NUMBER",
+      "column_description": "Total principal amounts paid or prepaid to IBRD in US dollars, calculated at the exchange rate on the value date of the individual repayments.",
+      "column_position": "19"
+    },
+    {
+      "column_name": "sold_3rd_party",
+      "column_business_name": "Sold 3rd Party (US$)",
+      "column_datatype": "NUMBER",
+      "column_description": "Portion of loan sold to a third party.",
+      "column_position": "23"
+    },
+    {
+      "column_name": "undisbursed_amount",
+      "column_business_name": "Undisbursed Amount (US$)",
+      "column_datatype": "NUMBER",
+      "column_description": "The amount of a loan commitment that is still available to be drawn down. These currency amounts have been converted to US dollars at the exchange rates applicable at the End of Period date. ",
+      "column_position": "17"
+    }
+  ]
+}

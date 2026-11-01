@@ -1,0 +1,6 @@
+.venv/
+.streamlit/secrets.toml
+.env
+__pycache__/
+.DS_Store
+data/ibrd.duckdb
