@@ -43,8 +43,14 @@ def values_match(gold, mine, kind: str, scoring: dict) -> bool:
 
 
 def rows_match(gold_rows, mine_rows, q: dict, scoring: dict) -> bool:
-    """scoring.columns: each gold column must match a distinct answer column; extra answer columns are allowed."""
+    """scoring.columns: each gold column must match a distinct answer column; extra answer columns are allowed.
+
+    match: first_row (a question-level field): extra answer rows are allowed; the answer's first rows,
+    in order, must match the gold rows. Used where the agent may return a full ranking instead of the top row.
+    """
     mine_rows = [[plain(v) for v in row] for row in mine_rows]
+    if q.get("match") == "first_row":
+        mine_rows = mine_rows[:len(gold_rows)]
     if len(gold_rows) != len(mine_rows):
         return False
     n_gold = len(gold_rows[0]) if gold_rows else 0
