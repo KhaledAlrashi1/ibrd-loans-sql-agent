@@ -23,7 +23,7 @@ validates it, runs it on a local DuckDB file, and shows the answer as a table (+
 ```bash
 source .venv/bin/activate
 python scripts/build_db.py            # raw CSV -> data/ibrd.duckdb (fails loudly if checks fail)
-python scripts/run_eval.py            # scores the agent -> eval/results/latest.json
+python scripts/run_eval.py            # scores the agent (dev split) -> eval/results/<timestamp>_dev.json
 pytest -q                             # guardrail tests
 streamlit run app.py
 ```
@@ -72,3 +72,5 @@ docs/                          demo GIF, screenshots
 6. Work in small steps. After each step, run the relevant check and report results in short tables.
 7. Keep explanations short. Lead with what changed and what Khaled needs to review.
 8. During tuning, run only `run_eval.py --split dev`. Never run or read heldout results unless Khaled asks.
+9. One branch per phase; open a PR; Khaled merges.
+10. Never print or read the contents of .streamlit/secrets.toml. Load the key from there or from ANTHROPIC_API_KEY.
