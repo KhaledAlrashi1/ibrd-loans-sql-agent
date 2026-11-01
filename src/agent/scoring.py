@@ -43,8 +43,14 @@ def values_match(gold, mine, kind: str, scoring: dict) -> bool:
 
 
 def rows_match(gold_rows, mine_rows, q: dict, scoring: dict) -> bool:
-    """scoring.columns: each gold column must match a distinct answer column; extra answer columns are allowed."""
+    """scoring.columns: each gold column must match a distinct answer column; extra answer columns are allowed.
+
+    match: first_row (a question-level field): extra answer rows are allowed; the answer's first rows,
+    in order, must match the gold rows. Used where the agent may return a full ranking instead of the top row.
+    """
     mine_rows = [[plain(v) for v in row] for row in mine_rows]
+    if q.get("match") == "first_row":
+        mine_rows = mine_rows[:len(gold_rows)]
     if len(gold_rows) != len(mine_rows):
         return False
     n_gold = len(gold_rows[0]) if gold_rows else 0
@@ -61,6 +67,19 @@ def rows_match(gold_rows, mine_rows, q: dict, scoring: dict) -> bool:
 
 def has_number(rows) -> bool:
     return any(isinstance(plain(v), (int, float)) and not isinstance(v, bool) for row in rows for v in row)
+
+
+def caveat_check(q: dict, message: str, assumptions: list[str]) -> tuple[bool, list[list[str]]] | None:
+    """Reported only; never changes the outcome. None when the question has no must_mention.
+
+    must_mention is a list of any-of lists: every list must have at least one term in the message or
+    assumptions (case-insensitive). Returns (ok, the lists that had no match).
+    """
+    if "must_mention" not in q:
+        return None
+    text = " ".join([message, *assumptions]).lower()
+    missing = [terms for terms in q["must_mention"] if not any(t.lower() in text for t in terms)]
+    return not missing, missing
 
 
 def score(q: dict, status: str, rows, scoring: dict) -> tuple[str, str]:

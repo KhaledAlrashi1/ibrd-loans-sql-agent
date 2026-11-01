@@ -72,5 +72,5 @@ docs/                          demo GIF, screenshots
 6. Work in small steps. After each step, run the relevant check and report results in short tables.
 7. Keep explanations short. Lead with what changed and what Khaled needs to review.
 8. During tuning, run only `run_eval.py --split dev`. Never run or read heldout results unless Khaled asks.
-9. One branch per phase; open a PR; Khaled merges.
+9. One branch per phase; open a PR; merge only when Khaled says so.
 10. Never print or read the contents of .streamlit/secrets.toml. Load the key from there or from ANTHROPIC_API_KEY.

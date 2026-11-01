@@ -1344,6 +1344,12 @@ notes:
 - id: no_active_status
   type: rule
   note: 'There is no ''active'' status. If a question says ''active'', ask: still disbursing, or has an outstanding balance?'
+- id: clarify_vs_default
+  type: rule
+  note: 'Ask a clarifying question only when two readings are about equally likely AND would give materially different
+    answers, or when the dictionary says to ask (e.g. ''active''). Otherwise use the dominant reading and state it as
+    an assumption. Default: ''most/largest/biggest <money term> loans'' (undisbursed, cancelled, disbursed, owed, approved)
+    ranks by total amount, not number of loans.'
 - id: loans_held_includes_guarantees
   type: rule
   note: loans_held_usd includes guarantee exposure (8.3B on guarantee rows).

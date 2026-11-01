@@ -193,6 +193,7 @@ questions:
     spec: "Region with the highest SUM(undisbursed_amount_usd), is_guarantee = FALSE. Return region and amount."
     tests: "group by region"
     order_matters: false
+    match: first_row
     gold_sql: |
       SELECT region, SUM(undisbursed_amount_usd) AS undisbursed_usd
       FROM ibrd_loans
@@ -212,6 +213,7 @@ questions:
     expected_behavior: answer
     spec: "AVG(interest_rate) where interest_rate > 0 and is_guarantee = FALSE. Answer must state that zero rates (multiple-rate loans) were excluded. The answer must say it is an unweighted average over loans with a single reported rate, mostly older loans, and that multiple-rate loans (all FSL, some SCL) are not included."
     tests: "0 means 'multiple rates', not 0%"
+    must_mention: [[unweighted], [multiple]]
     order_matters: false
     gold_sql: |
       SELECT AVG(interest_rate) AS avg_interest_rate
@@ -264,6 +266,7 @@ questions:
     spec: "Row with MAX(original_principal_amount_usd), is_guarantee = FALSE. Return loan_number, country, amount."
     tests: "argmax"
     order_matters: false
+    match: first_row
     gold_sql: |
       SELECT country, original_principal_amount_usd
       FROM ibrd_loans
@@ -283,6 +286,7 @@ questions:
     expected_behavior: answer
     spec: "COUNT(*) where loan_status = 'Fully Cancelled' and is_guarantee = FALSE."
     tests: "exact status string; guarantees also carry this status. 69 Terminated loans are not included; the answer should mention them."
+    must_mention: [[terminated]]
     order_matters: false
     gold_sql: |
       SELECT COUNT(*) AS loans
@@ -317,6 +321,7 @@ questions:
     expected_behavior: answer
     spec: "COUNT(*) where board_approval_fy = 2027 and is_guarantee = FALSE. Answer must flag that FY2027 is partial (Jul-Sep 2026 only)."
     tests: "partial fiscal year flag"
+    must_mention: [[partial]]
     order_matters: false
     gold_sql: |
       SELECT COUNT(*) AS loans
@@ -478,6 +483,7 @@ questions:
     expected_behavior: answer
     spec: "AVG(interest_rate) where country = 'China' and interest_rate > 0 and is_guarantee = FALSE. Must state zeros excluded. The answer must say it is an unweighted average over loans with a single reported rate, mostly older loans, and that multiple-rate loans (all FSL, some SCL) are not included."
     tests: "zero-rate trap with a filter"
+    must_mention: [[unweighted], [multiple]]
     order_matters: false
     gold_sql: |
       SELECT AVG(interest_rate) AS avg_interest_rate
@@ -513,6 +519,7 @@ questions:
     spec: "Region with the highest SUM(borrowers_obligation_usd), is_guarantee = FALSE. Return region and amount."
     tests: "outstanding by region"
     order_matters: false
+    match: first_row
     gold_sql: |
       SELECT region, SUM(borrowers_obligation_usd) AS borrowers_obligation_usd
       FROM ibrd_loans
