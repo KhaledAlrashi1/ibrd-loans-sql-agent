@@ -64,7 +64,8 @@ export function Ask({ examples }: { examples: ExamplesFile }) {
   useEffect(() => {
     let answered = false;
     const slow = setTimeout(() => !answered && setServer("waking"), WAKING_AFTER_MS);
-    fetch("/api/health", { cache: "no-store" }).catch(() => {}).finally(() => {
+    // Read the (tiny) body so the request completes instead of staying open.
+    fetch("/api/health", { cache: "no-store" }).then((r) => r.text()).catch(() => {}).finally(() => {
       answered = true;
       clearTimeout(slow);
       setServer("ready");
