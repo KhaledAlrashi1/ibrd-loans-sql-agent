@@ -1,4 +1,4 @@
-"""Build data/ibrd.duckdb (one table, ibrd_loans) from the frozen raw CSV.
+"""Build the DuckDB file (one table, ibrd_loans) from the frozen raw CSV, at config.DB_PATH in the temp directory.
 
 The column mapping (original CSV name -> column, type) comes from src/agent/data_dictionary.yaml.
 Deletes and rebuilds the database on every run. Stops with a clear error if any
@@ -17,9 +17,13 @@ import duckdb
 import yaml
 
 ROOT = Path(__file__).resolve().parents[1]
+sys.path.insert(0, str(ROOT))
+
+from src.agent import config  # noqa: E402
+
 RAW_CSV = ROOT / "data" / "raw" / "ibrd_snapshot_2026-09-30.csv"
 DICTIONARY_PATH = ROOT / "src" / "agent" / "data_dictionary.yaml"
-DB_PATH = ROOT / "data" / "ibrd.duckdb"
+DB_PATH = config.DB_PATH
 TABLE = "ibrd_loans"
 
 EXPECTED_ROWS = 9538
@@ -212,6 +216,7 @@ def report_checks(con, columns: list[dict]) -> None:
 def build(db_path: Path = DB_PATH, report: bool = True) -> Path:
     """Delete and rebuild db_path. Raises CheckFailed (and leaves no file) if a hard check fails."""
     tmp_path = db_path.with_suffix(".duckdb.tmp")
+    db_path.parent.mkdir(mode=0o700, parents=True, exist_ok=True)
     for path in (db_path, tmp_path, tmp_path.with_suffix(".tmp.wal")):
         path.unlink(missing_ok=True)
 
@@ -250,7 +255,7 @@ def main() -> int:
     except CheckFailed as e:
         print(f"\nBUILD FAILED: {e}", file=sys.stderr)
         return 1
-    print(f"\nOK: wrote {DB_PATH.relative_to(ROOT)} (table {TABLE})")
+    print(f"\nOK: wrote {DB_PATH} (table {TABLE})")
     return 0
 
 

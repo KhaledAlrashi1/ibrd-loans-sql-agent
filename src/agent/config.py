@@ -1,9 +1,14 @@
 """Settings for the IBRD loans SQL agent. Change values here, not in the modules that use them."""
 
+import hashlib
+import tempfile
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[2]
-DB_PATH = ROOT / "data" / "ibrd.duckdb"
+# Built from the frozen CSV by scripts/build_db.py, always in the temp directory (the same path locally
+# and on Streamlit Community Cloud). One folder per checkout, so two clones never share a database.
+DB_PATH = (Path(tempfile.gettempdir()) / f"ibrd-loans-sql-agent-{hashlib.sha1(str(ROOT).encode()).hexdigest()[:8]}"
+           / "ibrd.duckdb")
 DICTIONARY_PATH = ROOT / "src" / "agent" / "data_dictionary.yaml"
 SECRETS_PATH = ROOT / ".streamlit" / "secrets.toml"
 TABLE = "ibrd_loans"

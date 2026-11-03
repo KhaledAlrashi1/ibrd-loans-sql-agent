@@ -49,7 +49,9 @@ def add_usage(result: AgentResult, usage) -> None:
     result.cache_creation_input_tokens += usage.cache_creation_input_tokens or 0
 
 
-def answer(question: str) -> AgentResult:
+def answer(question: str, raise_api_errors: bool = False) -> AgentResult:
+    """raise_api_errors=True re-raises anthropic.APIError instead of returning status "error", so the
+    UI can tell a rate limit from a bad key. The eval runner keeps the default and records the failure."""
     start = time.perf_counter()
     result = AgentResult(question=question, status="error")
     messages = [{"role": "user", "content": question}]
@@ -60,6 +62,8 @@ def answer(question: str) -> AgentResult:
         try:
             response = llm.call_model(messages)
         except anthropic.APIError as e:
+            if raise_api_errors:
+                raise
             reason = f"The language model request failed ({type(e).__name__})."
             break
         add_usage(result, response.usage)

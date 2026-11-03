@@ -1,0 +1,4 @@
+# Backstop for the app's own error handling: never send tracebacks or error details to the browser.
+# Real errors are still logged server-side.
+[client]
+showErrorDetails = "none"

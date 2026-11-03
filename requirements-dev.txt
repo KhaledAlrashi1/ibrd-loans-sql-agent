@@ -1,0 +1,3 @@
+# Runtime pins plus test tools: uv pip install -r requirements-dev.txt
+-r requirements.txt
+pytest==9.2.0

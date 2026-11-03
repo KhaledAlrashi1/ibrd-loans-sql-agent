@@ -22,7 +22,7 @@ validates it, runs it on a local DuckDB file, and shows the answer as a table (+
 ## Commands
 ```bash
 source .venv/bin/activate
-python scripts/build_db.py            # raw CSV -> data/ibrd.duckdb (fails loudly if checks fail)
+python scripts/build_db.py            # raw CSV -> DuckDB file in the temp dir, config.DB_PATH (fails loudly if checks fail)
 python scripts/run_eval.py            # scores the agent (dev split) -> eval/results/<timestamp>_dev.json
 pytest -q                             # guardrail tests
 streamlit run app.py
@@ -32,7 +32,7 @@ streamlit run app.py
 ```
 app.py                         Streamlit UI only (no business logic)
 data/raw/ibrd_snapshot_2026-09-30.csv   FROZEN source snapshot (committed)
-data/ibrd.duckdb               built by scripts/build_db.py
+<tempdir>/ibrd-loans-sql-agent-<hash>/ibrd.duckdb   built by scripts/build_db.py (config.DB_PATH; nothing is written to data/)
 src/agent/
   config.py                    model name, row limit, timeout
   data_dictionary.yaml         single source of truth: feeds the prompt AND the README
