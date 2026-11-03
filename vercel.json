@@ -1,0 +1,22 @@
+{
+  "$schema": "https://openapi.vercel.sh/vercel.json",
+  "services": {
+    "web": { "root": "web/", "framework": "nextjs" },
+    "api": {
+      "root": "./",
+      "framework": "fastapi",
+      "entrypoint": "server.main:app",
+      "installCommand": "pip install -r server/requirements.txt",
+      "functions": {
+        "server/main.py": {
+          "maxDuration": 60,
+          "excludeFiles": "{web/**,eval/**,tests/**,docs/**,.venv/**,.streamlit/**}"
+        }
+      }
+    }
+  },
+  "rewrites": [
+    { "source": "/api/(.*)", "destination": { "service": "api" } },
+    { "source": "/(.*)", "destination": { "service": "web" } }
+  ]
+}
