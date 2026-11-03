@@ -69,7 +69,8 @@ export function LineChart({ data }: { data: Answer }) {
                 <text x={PAD.left - 8} y={sy(t)} dy="0.32em" textAnchor="end" className="tick">{tick(t, unit)}</text>
               </g>
             ))}
-            {pts.map((p, k) => (k % every === 0 || k === pts.length - 1) && (
+            {/* the last year is always labelled; a regular tick too close to it would overlap */}
+            {pts.map((p, k) => (k === pts.length - 1 || (k % every === 0 && pts.length - 1 - k >= every)) && (
               <text key={p.x} x={sx(p.x)} y={H - 8} textAnchor="middle" className="tick">FY{p.x}</text>
             ))}
             {active && <line x1={sx(active.x)} x2={sx(active.x)} y1={PAD.top} y2={PAD.top + innerH} className="crosshair" />}

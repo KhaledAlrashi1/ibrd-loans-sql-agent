@@ -114,6 +114,17 @@ test("line chart example", async ({ page }) => {
   expect(fiscalYears.display_rows[0][1]).toBe("$26.86B");
 });
 
+test("line chart x labels never overlap at 390 px", async ({ page }) => {
+  await page.setViewportSize({ width: 390, height: 844 });
+  await mockAsk(page, {});
+  await page.goto("/");
+  await page.getByRole("button", { name: /each fiscal year from 2020 to 2025/ }).click();
+  const labels = page.locator(".line-wrap text.tick", { hasText: /^FY/ });
+  await expect(labels.last()).toHaveText("FY2025");
+  const boxes = await labels.evaluateAll((els) => els.map((e) => e.getBoundingClientRect()).map((r) => [r.left, r.right]));
+  for (let i = 1; i < boxes.length; i++) expect(boxes[i][0]).toBeGreaterThan(boxes[i - 1][1]);
+});
+
 test("live answer: progress steps and skeleton, then the answer with latency", async ({ page }) => {
   const calls = await mockAsk(page, live({ question: "Top undisbursed?" }), { delayMs: 1500 });
   await page.goto("/");

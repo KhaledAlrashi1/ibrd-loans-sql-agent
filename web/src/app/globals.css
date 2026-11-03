@@ -130,7 +130,7 @@ h1 { font: 600 31px/1.16 var(--serif); letter-spacing: -0.01em; margin: 0 0 12px
   display: flex; justify-content: space-between; align-items: center; gap: 16px;
   transition: background-color 120ms ease, color 120ms ease;
 }
-.examples button:hover { background: var(--wash); color: var(--ink); }
+@media (hover: hover) { .examples button:hover { background: var(--wash); color: var(--ink); } }  /* no sticky highlight after a tap */
 .examples button:active { background: var(--hairline); }
 .examples .tag { font-size: 12px; color: var(--muted); white-space: nowrap; }
 
@@ -204,8 +204,8 @@ h1 { font: 600 31px/1.16 var(--serif); letter-spacing: -0.01em; margin: 0 0 12px
   transition: background-color 120ms ease;
 }
 .bars .val { flex: none; margin-left: 8px; font-size: 13px; font-variant-numeric: tabular-nums; color: var(--ink); white-space: nowrap; }
-.bars li:hover .name { color: var(--ink); }
-.bars li:hover .bar { background: color-mix(in oklab, var(--accent) 78%, var(--surface)); }
+@media (hover: hover) { .bars li:hover .name { color: var(--ink); } }
+@media (hover: hover) { .bars li:hover .bar { background: color-mix(in oklab, var(--accent) 78%, var(--surface)); } }
 @keyframes grow { from { transform: scaleX(0); } }
 
 .line-wrap { position: relative; width: 100%; min-height: 240px; touch-action: pan-y; }
@@ -252,7 +252,7 @@ th:first-child { z-index: 2; }
 .num { text-align: right; font-variant-numeric: tabular-nums; white-space: nowrap; }
 .rank { color: var(--muted); width: 2.5rem; }
 td.rank + td, th.rank + th { position: static; }
-tbody tr:hover td { background: var(--wash); }
+@media (hover: hover) { tbody tr:hover td { background: var(--wash); } }
 .null { color: var(--muted); }
 .note { font-size: 13px; color: var(--muted); margin: 10px 0 0; }
 
