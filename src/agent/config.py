@@ -22,6 +22,8 @@ MAX_TOKENS = 16000
 # Guardrails
 ROW_LIMIT = 1000
 TIMEOUT_S = 10
+MEMORY_LIMIT = "512MB"    # per query connection; spilling to disk is off, so this also caps disk use
+THREADS = 2
 MAX_ATTEMPTS = 2          # first try + one retry with the error message
 
 # US$ per million tokens for MODEL, used only for the cost estimate in run_eval.py.

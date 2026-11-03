@@ -3,6 +3,8 @@
     pytest -q
 """
 
+import time
+
 import pytest
 
 from scripts.build_db import ensure_database
@@ -119,6 +121,40 @@ def test_row_limit_sets_truncated():
 
 
 def test_timeout_interrupts_long_query():
+    # 9,538^3 (about 8.7e11) rows: runs for a very long time without the timer.
     slow = "SELECT COUNT(*) FROM ibrd_loans a, ibrd_loans b, ibrd_loans c"
-    with pytest.raises(ExecutionError, match="longer than"):
+    start = time.perf_counter()
+    with pytest.raises(ExecutionError, match="took too long"):
         run_query(slow, timeout_s=0.5)
+    assert time.perf_counter() - start < 3
+
+
+def test_connection_limits_are_set_and_locked():
+    settings = run_query("SELECT current_setting('memory_limit'), current_setting('threads'), "
+                         "current_setting('temp_directory')").rows[0]
+    assert settings == ("488.2 MiB", config.THREADS, "")  # DuckDB reports 512MB (10^6 bytes) in MiB
+    for sql in ("SET memory_limit = '8GB'", "SET threads = 8", "SET temp_directory = '/tmp/spill'"):
+        with pytest.raises(ExecutionError, match="locked"):
+            run_query(sql)
+
+
+def test_row_cap_applied_during_execution():
+    # About 91 million rows: fetching them all would take far longer than the timeout.
+    start = time.perf_counter()
+    result = run_query("SELECT a.*, b.loan_number AS b_loan FROM ibrd_loans a CROSS JOIN ibrd_loans b", timeout_s=5)
+    assert len(result.rows) == config.ROW_LIMIT
+    assert result.truncated
+    assert time.perf_counter() - start < 2
+
+
+def test_memory_heavy_query_is_stopped():
+    # Sorting about 91 million wide rows needs far more than the memory limit; with no disk spill it fails fast.
+    with pytest.raises(ExecutionError, match="too much memory"):
+        run_query("SELECT a.*, b.loan_number AS b_loan FROM ibrd_loans a CROSS JOIN ibrd_loans b ORDER BY random()")
+
+
+def test_environment_not_readable_from_sql(monkeypatch):
+    monkeypatch.setenv("ANTHROPIC_API_KEY", "sk-ant-test-not-a-real-key")
+    with pytest.raises(ExecutionError) as e:
+        run_query("SELECT getenv('ANTHROPIC_API_KEY')")
+    assert "sk-ant" not in str(e.value)
