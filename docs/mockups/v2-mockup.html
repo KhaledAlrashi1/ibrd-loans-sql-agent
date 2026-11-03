@@ -1,0 +1,381 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>IBRD Loan Book v2</title>
+<meta name="description" content="Static mockup of the v2 answer, single-value and clarify states. Values are real agent output from eval run 20261101-173749_dev; the clarify message is illustrative.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Source+Serif+4:opsz,wght@8..60,400;8..60,600&display=swap" rel="stylesheet">
+<style>
+  /* ---------- tokens (light) ---------- */
+  :root {
+    color-scheme: light;
+    --page: #f8f7f3;          /* warm paper */
+    --surface: #fdfcf9;       /* cards, chart surface */
+    --ink: #1b1a17;           /* 16.2:1 on page */
+    --ink-2: #55534c;         /* 7.2:1 */
+    --muted: #6f6c64;         /* 4.9:1, smallest text allowed */
+    --hairline: #e4e2db;
+    --rule: #cfccc3;
+    --wash: #f1efe9;          /* hover, code background */
+    --accent: #007d61;        /* series 1 + interactive, 4.8:1 */
+    --accent-ink: #00614f;    /* links/text on accent tint, 6.9:1 */
+    --accent-tint: #e3f1ec;
+    --on-accent: #ffffff;
+    --clarify: #8a5a00;       /* warm ochre text, 5.5:1 */
+    --clarify-tint: #f6eedc;
+    --critical: #b42f2f;      /* 5.8:1 */
+    --focus: #007d61;
+    --serif: "Source Serif 4", Georgia, "Times New Roman", serif;
+    --sans: Inter, system-ui, -apple-system, "Segoe UI", sans-serif;
+    --mono: ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+    --ease: cubic-bezier(.2, .8, .2, 1);
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      color-scheme: dark;
+      --page: #121211; --surface: #1b1a18; --ink: #eeece6; --ink-2: #c4c1b8; --muted: #9a978e;
+      --hairline: #2d2c29; --rule: #3a3935; --wash: #23221f;
+      --accent: #29a288; --accent-ink: #5cc4ab; --accent-tint: #15302a; --on-accent: #0d1f1a;
+      --clarify: #e0b04a; --clarify-tint: #2b2416; --critical: #ef7b7b; --focus: #5cc4ab;
+    }
+  }
+  :root[data-theme="dark"] {
+    color-scheme: dark;
+    --page: #121211; --surface: #1b1a18; --ink: #eeece6; --ink-2: #c4c1b8; --muted: #9a978e;
+    --hairline: #2d2c29; --rule: #3a3935; --wash: #23221f;
+    --accent: #29a288; --accent-ink: #5cc4ab; --accent-tint: #15302a; --on-accent: #0d1f1a;
+    --clarify: #e0b04a; --clarify-tint: #2b2416; --critical: #ef7b7b; --focus: #5cc4ab;
+  }
+
+  /* ---------- base ---------- */
+  * { box-sizing: border-box; }
+  html { -webkit-text-size-adjust: 100%; }
+  body {
+    margin: 0; background: var(--page); color: var(--ink);
+    font: 400 16px/1.55 var(--sans); font-feature-settings: "cv11";
+  }
+  .wrap { max-width: 720px; margin: 0 auto; padding: 0 16px; }
+  @media (min-width: 640px) { .wrap { padding: 0 24px; } }
+  a { color: var(--accent-ink); text-underline-offset: 2px; }
+  :focus-visible { outline: 2px solid var(--focus); outline-offset: 2px; border-radius: 4px; }
+
+  /* mockup-only controls */
+  .mock-bar { position: sticky; top: 0; z-index: 2; background: var(--page); border-bottom: 1px solid var(--hairline); }
+  .mock-bar .wrap { display: flex; gap: 8px; align-items: center; padding-top: 8px; padding-bottom: 8px; flex-wrap: wrap; }
+  .mock-bar span { font-size: 12px; color: var(--muted); margin-right: 4px; }
+  .seg { display: inline-flex; border: 1px solid var(--rule); border-radius: 8px; padding: 2px; background: var(--surface); }
+  .seg button { font: 500 13px/1 var(--sans); color: var(--ink-2); background: none; border: 0; border-radius: 6px; padding: 7px 10px; cursor: pointer; }
+  .seg button[aria-pressed="true"] { background: var(--wash); color: var(--ink); }
+
+  /* ---------- header ---------- */
+  header { padding: 40px 0 24px; }
+  h1 { font: 600 31px/1.15 var(--serif); letter-spacing: -0.01em; margin: 0 0 10px; }
+  @media (min-width: 640px) { h1 { font-size: 39px; } }
+  .lede { color: var(--ink-2); margin: 0 0 8px; max-width: 60ch; }
+  .asof { font-size: 13px; color: var(--muted); margin: 0; }
+
+  /* ---------- ask ---------- */
+  form.ask { display: flex; gap: 8px; margin: 8px 0 6px; }
+  .field { flex: 1; position: relative; }
+  .field input {
+    width: 100%; font: 400 16px/1.4 var(--sans); color: var(--ink);
+    background: var(--surface); border: 1px solid var(--rule); border-radius: 10px; padding: 12px 14px;
+  }
+  .field input:focus { outline: none; border-color: var(--accent); box-shadow: 0 0 0 3px var(--accent-tint); }
+  .btn { font: 600 15px/1 var(--sans); border: 0; border-radius: 10px; padding: 0 18px; min-height: 46px; cursor: pointer; background: var(--accent); color: var(--on-accent); }
+  .btn:active { transform: translateY(1px); }
+  .hint { font-size: 13px; color: var(--muted); margin: 0 0 20px; display: flex; justify-content: space-between; gap: 12px; }
+
+  .examples { list-style: none; margin: 0 0 32px; padding: 0; border-top: 1px solid var(--hairline); }
+  .examples li { border-bottom: 1px solid var(--hairline); }
+  .examples button {
+    width: 100%; text-align: left; font: 400 15px/1.4 var(--sans); color: var(--ink-2); background: none; border: 0;
+    padding: 11px 4px; cursor: pointer; display: flex; justify-content: space-between; gap: 12px;
+    transition: background-color 120ms var(--ease), color 120ms var(--ease);
+  }
+  .examples button:hover { background: var(--wash); color: var(--ink); }
+  .examples .tag { font-size: 12px; color: var(--muted); white-space: nowrap; }
+  .label { font: 600 12px/1 var(--sans); letter-spacing: .06em; text-transform: uppercase; color: var(--muted); margin: 0 0 10px; }
+
+  /* ---------- answer card ---------- */
+  .card { background: var(--surface); border: 1px solid var(--hairline); border-radius: 14px; padding: 20px; margin-bottom: 40px; }
+  @media (min-width: 640px) { .card { padding: 28px; } }
+  .state { display: none; animation: enter 180ms var(--ease); }
+  .state.on { display: block; }
+  @keyframes enter { from { opacity: 0; transform: translateY(4px); } to { opacity: 1; transform: none; } }
+
+  .meta { display: flex; flex-wrap: wrap; gap: 8px 14px; align-items: center; font-size: 13px; color: var(--muted); margin-bottom: 14px; }
+  .pill { display: inline-flex; align-items: center; gap: 6px; border: 1px solid var(--rule); border-radius: 999px; padding: 3px 10px; color: var(--ink-2); font-weight: 500; }
+  .pill::before { content: ""; width: 6px; height: 6px; border-radius: 50%; background: var(--muted); }
+  .pill.live::before { background: var(--accent); }
+  .q { font-size: 14px; color: var(--ink-2); margin: 0 0 6px; }
+  .summary { font: 400 21px/1.35 var(--serif); margin: 0 0 22px; max-width: 58ch; }
+
+  .view-toggle { margin: 0 0 14px; }
+  .chart-title { font-size: 13px; color: var(--ink-2); margin: 0 0 12px; }
+
+  /* bar chart: single series, direct labels at the tip, no axis needed */
+  .bars { display: grid; grid-template-columns: minmax(5.5rem, 7.5rem) 1fr; row-gap: 8px; column-gap: 12px; margin: 0; padding: 0; list-style: none; }
+  .bars li { display: contents; }
+  .bars .name { font-size: 14px; color: var(--ink-2); text-align: right; align-self: center; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  /* bar widths are % of the track's content box; the right padding reserves room for the tip label */
+  .bars .track { display: flex; align-items: center; min-height: 26px; padding-right: 4.75rem; min-width: 0; }
+  .bars .bar {
+    flex: none; height: 18px; background: var(--accent); border-radius: 0 4px 4px 0; width: var(--w);
+    transform-origin: left center; animation: grow 420ms var(--ease) both; animation-delay: calc(var(--i) * 25ms);
+  }
+  .bars .val { flex: none; margin-left: 8px; font-size: 13px; font-variant-numeric: tabular-nums; color: var(--ink); white-space: nowrap; }
+  .bars li:hover .name { color: var(--ink); }
+  .bars li:hover .bar { filter: brightness(1.08); }
+  @keyframes grow { from { transform: scaleX(0); } to { transform: scaleX(1); } }
+
+  table { width: 100%; border-collapse: collapse; font-size: 14px; }
+  th { text-align: left; font-weight: 600; color: var(--ink-2); border-bottom: 1px solid var(--rule); padding: 8px 10px; white-space: nowrap; }
+  td { border-bottom: 1px solid var(--hairline); padding: 8px 10px; }
+  th.num, td.num { text-align: right; font-variant-numeric: tabular-nums; }
+  td.rank { color: var(--muted); width: 2.5rem; font-variant-numeric: tabular-nums; }
+  tbody tr:hover { background: var(--wash); }
+  .table-wrap { overflow-x: auto; margin: 0 -4px; }
+  .exact-note { font-size: 12px; color: var(--muted); margin: 8px 0 0; }
+
+  /* hero number */
+  .hero { margin: 4px 0 18px; }
+  .hero .n { font: 600 56px/1 var(--sans); letter-spacing: -0.02em; }
+  .hero .what { font-size: 15px; color: var(--ink-2); margin-top: 8px; }
+  .caveat { border-left: 3px solid var(--clarify); background: var(--clarify-tint); padding: 10px 14px; border-radius: 0 8px 8px 0; font-size: 14px; margin: 0 0 20px; }
+  .caveat b { font-weight: 600; }
+
+  /* assumptions + sql */
+  .section { border-top: 1px solid var(--hairline); margin-top: 22px; padding-top: 18px; }
+  .assumptions { margin: 0; padding-left: 18px; color: var(--ink-2); font-size: 14px; }
+  .assumptions li { margin: 0 0 6px; padding-left: 2px; }
+  details summary { cursor: pointer; font: 600 14px/1.4 var(--sans); color: var(--ink); list-style: none; display: flex; align-items: center; gap: 8px; }
+  details summary::-webkit-details-marker { display: none; }
+  details summary::before { content: "›"; display: inline-block; transition: transform 160ms var(--ease); color: var(--muted); font-size: 18px; line-height: 1; }
+  details[open] summary::before { transform: rotate(90deg); }
+  pre.sql {
+    margin: 12px 0 0; padding: 14px; background: var(--wash); border-radius: 8px; font: 13px/1.6 var(--mono);
+    white-space: pre-wrap; overflow-wrap: anywhere; color: var(--ink);
+  }
+  .kw { color: var(--accent-ink); font-weight: 600; }
+  .foot-meta { font-size: 12px; color: var(--muted); margin-top: 16px; display: flex; flex-wrap: wrap; gap: 4px 14px; }
+
+  /* clarify */
+  .clarify-head { display: flex; align-items: center; gap: 8px; font: 600 13px/1 var(--sans); color: var(--clarify); margin-bottom: 12px; letter-spacing: .02em; }
+  .clarify-head svg { flex: none; }
+  .clarify-msg { font: 400 22px/1.4 var(--serif); margin: 0 0 14px; max-width: 52ch; }
+  .clarify-help { font-size: 14px; color: var(--ink-2); margin: 0; }
+
+  footer { border-top: 1px solid var(--hairline); padding: 20px 0 40px; font-size: 13px; color: var(--muted); }
+  footer p { margin: 0 0 6px; }
+
+  @media (prefers-reduced-motion: reduce) {
+    *, *::before { animation: none !important; transition: none !important; }
+  }
+</style>
+</head>
+<body>
+
+<div class="mock-bar">
+  <div class="wrap">
+    <span>Mockup</span>
+    <div class="seg" role="group" aria-label="State">
+      <button type="button" data-state="ranking" aria-pressed="true">Answer</button>
+      <button type="button" data-state="single" aria-pressed="false">Single value</button>
+      <button type="button" data-state="clarify" aria-pressed="false">Clarify</button>
+    </div>
+    <div class="seg" role="group" aria-label="Theme">
+      <button type="button" data-theme-set="light" aria-pressed="false">Light</button>
+      <button type="button" data-theme-set="dark" aria-pressed="false">Dark</button>
+    </div>
+  </div>
+</div>
+
+<div class="wrap">
+  <header>
+    <h1>Ask the IBRD loan book</h1>
+    <p class="lede">Ask a question in plain English. An AI model writes the SQL, the app checks it and runs it on the official data, and you see the answer, the SQL and every assumption behind it.</p>
+    <p class="asof">Data as of Sep 30, 2026 · 9,538 loans and guarantees</p>
+  </header>
+
+  <form class="ask" onsubmit="return false">
+    <div class="field">
+      <label for="q" class="label" style="position:absolute;left:-9999px">Your question</label>
+      <input id="q" name="q" maxlength="300" autocomplete="off" value="Which 10 countries have the most undisbursed IBRD loans?">
+    </div>
+    <button class="btn" type="submit">Ask</button>
+  </form>
+  <p class="hint"><span>Press Enter to ask</span><span id="count">57 / 300</span></p>
+
+  <p class="label">Try an example</p>
+  <ul class="examples">
+    <li><button type="button">Which 10 countries have the most undisbursed IBRD loans? <span class="tag">instant</span></button></li>
+    <li><button type="button">Which 5 countries owe the most to the IBRD? <span class="tag">instant</span></button></li>
+    <li><button type="button">Total IBRD loans approved in each fiscal year, 2020 to 2025 <span class="tag">instant</span></button></li>
+    <li><button type="button">How many IBRD loans were approved in fiscal year 2027? <span class="tag">instant</span></button></li>
+  </ul>
+
+  <main class="card" aria-live="polite">
+
+    <!-- ===== Answer: ranking ===== -->
+    <section class="state on" id="state-ranking">
+      <div class="meta">
+        <span class="pill">Cached example</span>
+        <span>Computed by the live agent on Nov 1, 2026</span>
+      </div>
+      <p class="q">Which 10 countries have the most undisbursed IBRD loans?</p>
+      <p class="summary">Top 10 countries by total undisbursed amount on IBRD loans (excluding guarantees and regional entries).</p>
+
+      <div class="seg view-toggle" role="tablist" aria-label="View">
+        <button type="button" role="tab" data-view="chart" aria-pressed="true">Chart</button>
+        <button type="button" role="tab" data-view="table" aria-pressed="false">Table</button>
+      </div>
+
+      <div id="view-chart">
+        <p class="chart-title">Undisbursed (USD), by country</p>
+        <ul class="bars">
+          <li title="$14,851,719,396.98"><span class="name">Turkiye</span><span class="track"><span class="bar" style="--w:100%;--i:0"></span><span class="val">$14.85B</span></span></li>
+          <li title="$12,981,866,606.32"><span class="name">India</span><span class="track"><span class="bar" style="--w:87.4%;--i:1"></span><span class="val">$12.98B</span></span></li>
+          <li title="$11,228,931,299.77"><span class="name">Brazil</span><span class="track"><span class="bar" style="--w:75.6%;--i:2"></span><span class="val">$11.23B</span></span></li>
+          <li title="$6,203,613,206.32"><span class="name">Indonesia</span><span class="track"><span class="bar" style="--w:41.8%;--i:3"></span><span class="val">$6.20B</span></span></li>
+          <li title="$6,079,643,536.24"><span class="name">Philippines</span><span class="track"><span class="bar" style="--w:40.9%;--i:4"></span><span class="val">$6.08B</span></span></li>
+          <li title="$4,446,790,594.80"><span class="name">China</span><span class="track"><span class="bar" style="--w:29.9%;--i:5"></span><span class="val">$4.45B</span></span></li>
+          <li title="$4,151,783,521.05"><span class="name">Morocco</span><span class="track"><span class="bar" style="--w:28.0%;--i:6"></span><span class="val">$4.15B</span></span></li>
+          <li title="$2,989,358,422.21"><span class="name">Angola</span><span class="track"><span class="bar" style="--w:20.1%;--i:7"></span><span class="val">$2.99B</span></span></li>
+          <li title="$2,405,600,750.19"><span class="name">Peru</span><span class="track"><span class="bar" style="--w:16.2%;--i:8"></span><span class="val">$2.41B</span></span></li>
+          <li title="$2,393,247,690.01"><span class="name">Pakistan</span><span class="track"><span class="bar" style="--w:16.1%;--i:9"></span><span class="val">$2.39B</span></span></li>
+        </ul>
+      </div>
+
+      <div id="view-table" hidden>
+        <div class="table-wrap">
+          <table>
+            <thead><tr><th scope="col">#</th><th scope="col">Country</th><th scope="col" class="num">Undisbursed (USD)</th></tr></thead>
+            <tbody>
+              <tr><td class="rank">1</td><td>Turkiye</td><td class="num" title="$14,851,719,396.98">$14.85B</td></tr>
+              <tr><td class="rank">2</td><td>India</td><td class="num" title="$12,981,866,606.32">$12.98B</td></tr>
+              <tr><td class="rank">3</td><td>Brazil</td><td class="num" title="$11,228,931,299.77">$11.23B</td></tr>
+              <tr><td class="rank">4</td><td>Indonesia</td><td class="num" title="$6,203,613,206.32">$6.20B</td></tr>
+              <tr><td class="rank">5</td><td>Philippines</td><td class="num" title="$6,079,643,536.24">$6.08B</td></tr>
+              <tr><td class="rank">6</td><td>China</td><td class="num" title="$4,446,790,594.80">$4.45B</td></tr>
+              <tr><td class="rank">7</td><td>Morocco</td><td class="num" title="$4,151,783,521.05">$4.15B</td></tr>
+              <tr><td class="rank">8</td><td>Angola</td><td class="num" title="$2,989,358,422.21">$2.99B</td></tr>
+              <tr><td class="rank">9</td><td>Peru</td><td class="num" title="$2,405,600,750.19">$2.41B</td></tr>
+              <tr><td class="rank">10</td><td>Pakistan</td><td class="num" title="$2,393,247,690.01">$2.39B</td></tr>
+            </tbody>
+          </table>
+        </div>
+        <p class="exact-note">Hover or tap a value for the exact, unrounded amount.</p>
+      </div>
+
+      <div class="section">
+        <p class="label">Assumptions</p>
+        <ul class="assumptions">
+          <li>“Most undisbursed” ranks countries by total undisbursed amount (undisbursed_amount_usd), not by number of loans.</li>
+          <li>Guarantees excluded (is_guarantee = FALSE).</li>
+          <li>Regional entries (Caribbean, Eastern and Southern Africa, Southern Africa, Western and Central Africa) excluded from the country ranking.</li>
+          <li>undisbursed_amount_usd is in US$ at End of Period exchange rates (snapshot 2026-09-30).</li>
+          <li>All loan statuses included; amounts are summed across all of a country’s loans.</li>
+        </ul>
+      </div>
+
+      <div class="section">
+        <details>
+          <summary>SQL</summary>
+<pre class="sql"><span class="kw">SELECT</span> country, <span class="kw">SUM</span>(undisbursed_amount_usd) <span class="kw">AS</span> undisbursed_usd
+<span class="kw">FROM</span> ibrd_loans
+<span class="kw">WHERE</span> is_guarantee = <span class="kw">FALSE</span> <span class="kw">AND</span> is_regional_entry = <span class="kw">FALSE</span>
+<span class="kw">GROUP BY</span> country
+<span class="kw">ORDER BY</span> undisbursed_usd <span class="kw">DESC</span>
+<span class="kw">LIMIT</span> 10</pre>
+        </details>
+      </div>
+      <div class="foot-meta"><span>Answered in 3.2 s when computed</span><span>1 attempt</span><span>10 rows</span></div>
+    </section>
+
+    <!-- ===== Answer: single value ===== -->
+    <section class="state" id="state-single">
+      <div class="meta">
+        <span class="pill live">Live</span>
+        <span>Answered in 3.0 s</span>
+      </div>
+      <p class="q">How many IBRD loans were approved in fiscal year 2027?</p>
+      <div class="hero">
+        <div class="n" title="44">44</div>
+        <div class="what">IBRD loans approved in FY2027, guarantees excluded</div>
+      </div>
+      <p class="caveat"><b>Partial year.</b> FY2027 runs Jul 2026 – Jun 2027; this snapshot covers only Jul 1 – Sep 30, 2026, so this is not a full-year figure.</p>
+      <p class="summary" style="font-size:18px">Number of IBRD loans (excluding guarantees) approved in FY2027, which is only a partial year (Jul–Sep 2026).</p>
+
+      <div class="section">
+        <p class="label">Assumptions</p>
+        <ul class="assumptions">
+          <li>Fiscal year 2027 = board_approval_fy = 2027 (Jul 2026 – Jun 2027).</li>
+          <li>FY2027 is partial in this snapshot: only Jul 1 – Sep 30, 2026 is covered, so the count is not a full-year figure.</li>
+          <li>Guarantees excluded (is_guarantee = FALSE).</li>
+          <li>Counted one row per loan_number.</li>
+        </ul>
+      </div>
+      <div class="section">
+        <details>
+          <summary>SQL</summary>
+<pre class="sql"><span class="kw">SELECT</span> <span class="kw">COUNT</span>(*) <span class="kw">AS</span> loan_count <span class="kw">FROM</span> ibrd_loans <span class="kw">WHERE</span> board_approval_fy = 2027 <span class="kw">AND</span> is_guarantee = <span class="kw">FALSE</span></pre>
+        </details>
+      </div>
+      <div class="foot-meta"><span>1 attempt</span><span>1 row</span></div>
+    </section>
+
+    <!-- ===== Clarify ===== -->
+    <section class="state" id="state-clarify">
+      <div class="meta">
+        <span class="pill live">Live</span>
+        <span>Answered in 2.6 s</span>
+      </div>
+      <p class="q">Which loans are active?</p>
+      <div class="clarify-head">
+        <svg width="16" height="16" viewBox="0 0 16 16" aria-hidden="true"><circle cx="8" cy="8" r="7" fill="none" stroke="currentColor" stroke-width="1.5"/><path d="M6.2 6.1a1.9 1.9 0 1 1 2.6 1.8c-.5.2-.8.6-.8 1.1v.4" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/><circle cx="8" cy="11.6" r=".9" fill="currentColor"/></svg>
+        I need a bit more detail
+      </div>
+      <p class="clarify-msg">There is no “active” status in this data. Do you mean loans that are still disbursing, or loans that still have an outstanding balance?</p>
+      <p class="clarify-help">Add that detail to your question above and ask again. Nothing was run, and no SQL was written.</p>
+    </section>
+  </main>
+
+  <footer>
+    <p>Independent project, not affiliated with the World Bank.</p>
+    <p>Data: World Bank, <a href="https://financesone.worldbank.org/">IBRD Statement of Loans and Guarantees (DS00047)</a>, <a href="https://creativecommons.org/licenses/by/4.0/">CC BY 4.0</a>. Snapshot of Sep 30, 2026; columns renamed and two derived flags added. · <a href="https://github.com/KhaledAlrashi1/ibrd-loans-sql-agent">Code on GitHub</a></p>
+  </footer>
+</div>
+
+<script>
+  // Mockup controls only: switch state, view and theme.
+  const qs = (s, el = document) => [...el.querySelectorAll(s)];
+  const questions = {
+    ranking: "Which 10 countries have the most undisbursed IBRD loans?",
+    single: "How many IBRD loans were approved in fiscal year 2027?",
+    clarify: "Which loans are active?",
+  };
+  const input = document.getElementById("q"), count = document.getElementById("count");
+  const setCount = () => { count.textContent = `${input.value.length} / 300`; };
+  input.addEventListener("input", setCount);
+
+  qs("[data-state]").forEach(b => b.addEventListener("click", () => {
+    qs("[data-state]").forEach(x => x.setAttribute("aria-pressed", x === b));
+    qs(".state").forEach(s => s.classList.toggle("on", s.id === `state-${b.dataset.state}`));
+    input.value = questions[b.dataset.state]; setCount();
+  }));
+  qs("[data-view]").forEach(b => b.addEventListener("click", () => {
+    qs("[data-view]").forEach(x => x.setAttribute("aria-pressed", x === b));
+    document.getElementById("view-chart").hidden = b.dataset.view !== "chart";
+    document.getElementById("view-table").hidden = b.dataset.view !== "table";
+  }));
+  qs("[data-theme-set]").forEach(b => b.addEventListener("click", () => {
+    document.documentElement.dataset.theme = b.dataset.themeSet;
+    qs("[data-theme-set]").forEach(x => x.setAttribute("aria-pressed", x === b));
+  }));
+</script>
+</body>
+</html>
