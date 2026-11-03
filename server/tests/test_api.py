@@ -198,6 +198,25 @@ def test_limits_are_per_ip(client, calls):
     assert ask(client, "next", ip="198.51.100.2").status_code == 200
 
 
+def test_spoofed_x_forwarded_for_cannot_reset_the_count(client, calls):
+    """A new X-Forwarded-For on every request doesn't help: the count follows the IP Vercel sets."""
+    def spoof(question, fake):
+        headers = {"x-vercel-forwarded-for": "198.51.100.20", "x-real-ip": "198.51.100.20", "x-forwarded-for": fake}
+        return client.post("/api/ask", json={"question": question}, headers=headers)
+
+    for i in range(guard.HOURLY_PER_IP):
+        assert spoof(f"q{i}", f"10.0.0.{i}, 198.51.100.20").status_code == 200
+    assert spoof("next", "10.9.9.9").status_code == 429
+    assert len(calls.questions) == guard.HOURLY_PER_IP
+
+
+def test_x_forwarded_for_is_ignored_without_vercel_headers(client, calls):
+    for i in range(guard.HOURLY_PER_IP):
+        client.post("/api/ask", json={"question": f"q{i}"}, headers={"x-forwarded-for": f"10.0.0.{i}"})
+    r = client.post("/api/ask", json={"question": "next"}, headers={"x-forwarded-for": "10.9.9.9"})
+    assert r.status_code == 429  # all eleven counted against the socket peer
+
+
 def test_global_daily_cap(client, calls, monkeypatch):
     monkeypatch.setattr(guard, "DAILY_TOTAL", 3)
     for i in range(3):

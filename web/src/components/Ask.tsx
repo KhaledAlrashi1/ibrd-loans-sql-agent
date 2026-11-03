@@ -13,10 +13,14 @@ import { Progress } from "./Progress";
 const WRITING_AFTER_MS = 700;   // "Writing SQL" once the request has clearly reached the model
 const TICK_MS = 150;            // each confirmed step, once the response is in
 const TIMEOUT_MS = 70_000;      // above the API's 60 s maximum duration
+const WAKING_AFTER_MS = 800;    // a warm /api/health answers well within this, so a warm page never shows "waking"
+
+/** "checking" until /api/health answers or is slow, "waking" while a cold instance starts, then "ready". */
+type Server = "checking" | "waking" | "ready";
 
 type View =
   | { kind: "idle" }
-  | { kind: "loading"; question: string; step: number }
+  | { kind: "loading"; question: string; step: number; woke: boolean }
   | { kind: "answer"; data: Answer }
   | { kind: "notice"; notice: Notice | { status: "offline"; message: string }; question: string };
 
@@ -48,17 +52,25 @@ export function Ask({ examples }: { examples: ExamplesFile }) {
   const [problem, setProblem] = useState<string | null>(null);
   const [view, setView] = useState<View>({ kind: "idle" });
   const [announce, setAnnounce] = useState("");
+  const [server, setServer] = useState<Server>("checking");
   const run = useRef(0);
   const input = useRef<HTMLInputElement>(null);
   const resultRef = useRef<HTMLDivElement>(null);
   const loading = view.kind === "loading";
 
   // Wake the API instance while the visitor reads or types, so the first live question skips the cold start.
+  // A cold instance takes about 10 s; say so instead of leaving a silent spinner. Any reply (even a 503) or a
+  // network failure ends the wait: /api/ask then reports the problem itself.
   useEffect(() => {
-    const ping = () => fetch("/api/health", { cache: "no-store" }).catch(() => {});
-    const idle = window.requestIdleCallback ?? ((cb: () => void) => setTimeout(cb, 1));
-    idle(ping);
+    let answered = false;
+    const slow = setTimeout(() => !answered && setServer("waking"), WAKING_AFTER_MS);
+    fetch("/api/health", { cache: "no-store" }).catch(() => {}).finally(() => {
+      answered = true;
+      clearTimeout(slow);
+      setServer("ready");
+    });
     if (window.matchMedia("(hover: hover) and (pointer: fine)").matches) input.current?.focus();
+    return () => clearTimeout(slow);
   }, []);
 
   function show(next: View, status: string) {
@@ -75,10 +87,11 @@ export function Ask({ examples }: { examples: ExamplesFile }) {
     const id = ++run.current;
     const controller = new AbortController();
     const timeout = setTimeout(() => controller.abort(), TIMEOUT_MS);
-    setView({ kind: "loading", question, step: 0 });
+    const woke = server !== "ready";
+    setView({ kind: "loading", question, step: 0, woke });
     setAnnounce("Asking…");
     reveal();
-    const writing = setTimeout(() => run.current === id && setView({ kind: "loading", question, step: 1 }), WRITING_AFTER_MS);
+    const writing = setTimeout(() => run.current === id && setView({ kind: "loading", question, step: 1, woke }), WRITING_AFTER_MS);
 
     const res = await post(question, controller.signal);
     clearTimeout(timeout);
@@ -95,10 +108,10 @@ export function Ask({ examples }: { examples: ExamplesFile }) {
 
     if (res.status === "answer" || res.status === "empty") {
       // The server validated and ran the SQL: tick the last two steps before showing the answer.
-      setView({ kind: "loading", question, step: 3 });
+      setView({ kind: "loading", question, step: 3, woke });
       await wait(TICK_MS);
       if (run.current !== id) return;
-      setView({ kind: "loading", question, step: 4 });
+      setView({ kind: "loading", question, step: 4, woke });
       await wait(TICK_MS);
       if (run.current !== id) return;
     }
@@ -142,6 +155,9 @@ export function Ask({ examples }: { examples: ExamplesFile }) {
           </span>
         </div>
         <p id="q-problem" className="problem" role="alert">{problem}</p>
+        <p className="wake" role="status">
+          {server === "waking" && <><span className="wake-dot" aria-hidden="true" />Waking up the server (~10 s). The examples below work now.</>}
+        </p>
       </form>
 
       <section aria-labelledby="examples-heading" className="examples-block">
@@ -159,7 +175,7 @@ export function Ask({ examples }: { examples: ExamplesFile }) {
       </section>
 
       <div ref={resultRef} className="result-area">
-        {view.kind === "loading" && <Progress step={view.step} question={view.question} />}
+        {view.kind === "loading" && <Progress step={view.step} question={view.question} wake={!view.woke ? "none" : server === "ready" ? "done" : "active"} />}
         {view.kind === "answer" && <AnswerCard key={`${view.data.question}-${view.data.source}`} data={view.data} computedAt={examples.computed_at} />}
         {view.kind === "notice" && <NoticeCard notice={view.notice} onRetry={() => ask(view.question)} />}
       </div>

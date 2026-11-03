@@ -52,9 +52,16 @@ def api_key_configured() -> bool:
 
 
 def client_ip(request: Request) -> str:
-    # Vercel sets x-real-ip itself, so a client cannot spoof it there.
-    forwarded = request.headers.get("x-forwarded-for", "").split(",")[0].strip()
-    return request.headers.get("x-real-ip") or forwarded or (request.client.host if request.client else "unknown")
+    """The IP the per-IP limit counts. Only headers Vercel sets itself (it overwrites any client value).
+
+    X-Forwarded-For is never read: its first hop is whatever the client sent. Off Vercel (local dev only),
+    the socket peer is used.
+    """
+    for name in ("x-vercel-forwarded-for", "x-real-ip"):
+        value = request.headers.get(name, "").split(",")[0].strip()
+        if value:
+            return value
+    return request.client.host if request.client else "unknown"
 
 
 def reply(http_status: int, body: dict, started: float) -> JSONResponse:

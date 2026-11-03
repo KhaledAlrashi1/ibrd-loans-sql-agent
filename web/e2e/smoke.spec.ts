@@ -44,6 +44,40 @@ test("idle page: title, examples, attribution, warm-up ping", async ({ page }) =
   await expect(page.getByText(/World Bank logo/i)).toHaveCount(0);
 });
 
+test("cold server: visible waking state, examples still instant, live question waits with a waking step", async ({ page }) => {
+  let wake!: () => void;
+  const awake = new Promise<void>((r) => { wake = r; });
+  await page.route("**/api/health", async (r) => { await awake; await r.fulfill({ json: { ok: true } }); });
+  const calls: string[] = [];
+  await page.route("**/api/ask", async (r) => {
+    calls.push(JSON.parse(r.request().postData() ?? "{}").question);
+    await awake;
+    await r.fulfill({ json: live({ question: "Top undisbursed?" }) });
+  });
+  await page.goto("/");
+  const status = page.getByRole("status").filter({ hasText: "Waking up the server (~10 s)" });
+  await expect(status).toBeVisible();
+
+  await page.getByRole("button", { name: /Which 10 countries have the most undisbursed/ }).click();
+  await expect(page.getByRole("article").getByText("Cached example")).toBeVisible();
+  expect(calls).toEqual([]);
+
+  await askLive(page, "Top undisbursed?");
+  await expect(page.locator(".step.active")).toHaveText("Waking up the server (~10 s)");
+  await expect(page.locator(".step.todo")).toHaveCount(4);
+  wake();
+  await expect(status).toHaveCount(0);
+  await expect(page.getByRole("article").getByText("Live", { exact: true })).toBeVisible();
+  expect(calls).toEqual(["Top undisbursed?"]);
+});
+
+test("warm server: no waking state", async ({ page }) => {
+  await mockAsk(page, {});
+  await page.goto("/");
+  await page.waitForTimeout(1200);
+  await expect(page.getByText("Waking up the server")).toHaveCount(0);
+});
+
 test("examples render instantly with no request, chart and table", async ({ page }) => {
   const calls = await mockAsk(page, {});
   await page.goto("/");
