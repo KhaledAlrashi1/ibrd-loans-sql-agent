@@ -367,3 +367,17 @@ All items must pass. Otherwise **no-go: Streamlit stays the public demo** and v2
 3. **Limits:** 6/min and 20/day per IP; 100 live questions/day globally (section 3).
 4. **Fallback budget:** OK to spend about $3–6/month on Fly.io if the spike fails?
 5. **Mockup direction:** approve "Calm ledger" or request changes before evening 4.
+
+---
+
+## Decisions (Khaled, Nov 3, 2026)
+
+These replace the proposals above where they differ.
+
+| # | Topic | Decision |
+|---|---|---|
+| 1 | Rate limits | **10 live questions per hour per IP; 150 live questions per day globally.** Cache hits and cached examples don't count toward either. No separate per-minute burst limit (replaces the 6/min and 20/day proposal in section 3). |
+| 2 | Fallback | Fly.io (section 1.4, option A) is used **only if the gate fails**, and needs Khaled's approval first (account + card). |
+| 3 | Cached examples | Generated **once** by the real agent from merged `main`, committed as-is, labelled "Cached example". If D15's caveat is misleading again (e.g. "the count may be lower than 44" next to 44), replace example 4 with D09. **Never reroll or hand-edit.** |
+| 4 | Mockup feedback | None given. "Calm ledger" proceeds as specified in section 5. |
+| 5 | New dependencies | Approved as listed under "Decisions needed" (FastAPI; Next.js, React, TypeScript, Tailwind and their types). Test-only: Playwright for the frontend smoke test. |

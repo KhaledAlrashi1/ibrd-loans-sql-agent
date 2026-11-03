@@ -61,3 +61,19 @@ Only H07 changed (wrong → correct).
 scoring rule changed after the heldout result was seen, so it is not a clean heldout measurement. The
 heldout set is also small (10 questions). The next heldout checkpoint will be scored with the corrected
 rules from the start.
+
+## 2026-11-03: Post-hardening run
+
+PR #5 changed `src/agent/executor.py` (memory cap 512 MB, 2 threads, no disk spill, locked configuration)
+and added `MEMORY_LIMIT` / `THREADS` to `config.py`. The prompt, the validator and the model settings did
+not change. One dev run on merged `main` (commit `a8f96a5`), so the latest result file matches the code
+the v2 API imports.
+
+- Data: snapshot End of Period 2026-09-30. Model: `claude-sonnet-5-5`, effort `high`.
+- Before the run: `pytest -q` 146 passed; `scripts/verify_gold.py` all gold answers match pandas.
+
+| Run | File | Correct | Abstained | Wrong | Caveats | Latency median / max | Cost |
+|---|---|---|---|---|---|---|---|
+| dev (post-hardening) | `results/20261103-191552_dev.json` | 20 | 0 | 0 | 3/3 | 3.3 s / 4.3 s | $0.18 |
+
+Same outcome as the three Phase 4 dev runs. Heldout was not run.
