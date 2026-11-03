@@ -1,7 +1,9 @@
 """Run one already-validated SELECT on the local DuckDB file.
 
 Defense in depth, independent of guardrails.py: the connection is read-only, external access
-(files, network, extensions) is off, and the configuration is locked so a query cannot turn it back on.
+(files, network, extensions) is off, memory and threads are capped, spilling to disk is off
+(temp_directory ''), and the configuration is locked so a query cannot change any of it.
+A wall-clock timer interrupts queries that run too long.
 """
 
 import threading
@@ -28,7 +30,13 @@ def connect(db_path: Path = config.DB_PATH) -> duckdb.DuckDBPyConnection:
     return duckdb.connect(
         str(db_path),
         read_only=True,
-        config={"enable_external_access": False, "lock_configuration": True},
+        config={
+            "enable_external_access": False,
+            "memory_limit": config.MEMORY_LIMIT,
+            "threads": config.THREADS,
+            "temp_directory": "",  # no spilling: a query over the memory limit fails instead of filling the disk
+            "lock_configuration": True,  # a query cannot SET any of the options above
+        },
     )
 
 
@@ -49,7 +57,9 @@ def run_query(
         columns = [d[0] for d in cursor.description]
         rows = cursor.fetchmany(row_limit + 1)
     except duckdb.InterruptException:
-        raise ExecutionError(f"The query took longer than {timeout_s:g} s and was stopped.") from None
+        raise ExecutionError(f"That query took too long (over {timeout_s:g} s) and was stopped.") from None
+    except duckdb.OutOfMemoryException:
+        raise ExecutionError(f"That query needed too much memory (over {config.MEMORY_LIMIT}) and was stopped.") from None
     except duckdb.Error as e:
         raise ExecutionError(f"{type(e).__name__}: {e}") from None
     finally:
