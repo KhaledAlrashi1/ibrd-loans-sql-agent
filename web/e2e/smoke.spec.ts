@@ -66,10 +66,34 @@ test("stat strip shows the numbers in stats.json (checked against pandas in test
   expect(usd(stats.approved_usd)).toBe("$984.7B");
   await expect(strip).toContainText("Snapshot Sep 30, 2026");
 
-  const bars = strip.getByRole("figure", { name: "Outstanding by region" }).getByRole("listitem");
+  const bars = page.getByRole("figure", { name: "Outstanding by region" }).getByRole("listitem");
   await expect(bars).toHaveCount(stats.outstanding_by_region.length);
   await expect(bars.locator(".name")).toHaveText(stats.outstanding_by_region.map((r) => r.label));
   await expect(bars.locator(".val")).toHaveText(stats.outstanding_by_region.map((r) => usd(r.usd)));
+});
+
+test("page order: headline, subtitle, stats, ask box, examples, region chart, data panel (390 and 1200 px)", async ({ page }) => {
+  await mockAsk(page, {});
+  for (const width of [390, 1200]) {
+    await page.setViewportSize({ width, height: 900 });
+    await page.goto("/");
+    const tops = await page.evaluate(() =>
+      ["h1", ".lede", ".stats", "form.ask", ".examples-block", ".region-chart", ".data-panel"]
+        .map((sel) => document.querySelector(sel)!.getBoundingClientRect().top));
+    for (let i = 1; i < tops.length; i++) expect(tops[i]).toBeGreaterThan(tops[i - 1]);
+  }
+});
+
+test("tabular figures in the stat strip, the chart values and answer tables", async ({ page }) => {
+  await mockAsk(page, {});
+  await page.goto("/");
+  const numeric = (sel: string) => page.locator(sel).first().evaluate((el) => getComputedStyle(el).fontVariantNumeric);
+  expect(await numeric(".stats dd")).toBe("tabular-nums");
+  expect(await numeric(".region-chart .val")).toBe("tabular-nums");
+  await page.getByRole("button", { name: /Which 10 countries have the most undisbursed/ }).click();
+  await page.getByRole("article").getByRole("tab", { name: "Table" }).click();
+  expect(await numeric("article td")).toBe("tabular-nums");
+  expect(await numeric("article td.num")).toBe("tabular-nums");
 });
 
 test("cold server: visible waking state, examples still instant, live question waits with a waking step", async ({ page }) => {

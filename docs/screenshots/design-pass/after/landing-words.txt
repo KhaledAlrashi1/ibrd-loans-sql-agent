@@ -12,6 +12,17 @@ Countries
 143
 Loans
 9,425
+
+Snapshot Sep 30, 2026 · guarantees excluded
+
+Your question about IBRD loans
+Ask
+Try an example · instant
+Which 10 countries have the most undisbursed IBRD loans?
+Which 5 Middle East and North Africa countries owe the most to the IBRD?
+What was the total amount of IBRD loans approved in each fiscal year from 2020 to 2025?
+Which loans are active?
+
 Outstanding by region
 Latin America & Caribbean
 $86.6B
@@ -27,17 +38,6 @@ Eastern & Southern Africa
 $16.3B
 Western & Central Africa
 $3.7B
-
-Snapshot Sep 30, 2026 · guarantees excluded
-
-Your question about IBRD loans
-Ask
-Try an example · instant
-Which 10 countries have the most undisbursed IBRD loans?
-Which 5 Middle East and North Africa countries owe the most to the IBRD?
-What was the total amount of IBRD loans approved in each fiscal year from 2020 to 2025?
-Which loans are active?
-
 Ask about
 Countries
 Regions

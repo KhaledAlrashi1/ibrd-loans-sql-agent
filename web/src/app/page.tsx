@@ -1,5 +1,6 @@
 import { Ask } from "@/components/Ask";
 import { DataPanel } from "@/components/DataPanel";
+import { RegionChart } from "@/components/RegionChart";
 import { Stats } from "@/components/Stats";
 import { ThemeToggle } from "@/components/ThemeToggle";
 import type { ExamplesFile, Stats as StatsFile } from "@/lib/types";
@@ -29,6 +30,7 @@ export default function Home() {
 
       <main>
         <Ask examples={examples} />
+        <RegionChart regions={stats.outstanding_by_region} />
         <DataPanel endOfPeriod={ds.end_of_period} />
       </main>
 

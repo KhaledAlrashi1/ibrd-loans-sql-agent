@@ -84,7 +84,7 @@ h1 { font: 600 31px/1.16 var(--serif); letter-spacing: -0.01em; margin: 0 0 12px
 .stats dl > div { display: flex; flex-direction: column-reverse; gap: 2px; min-width: 0; }
 .stats dd { margin: 0; font: 600 30px/1.1 var(--sans); letter-spacing: -0.02em; font-variant-numeric: tabular-nums; }
 .stats dt { font-size: 14px; line-height: 20px; color: var(--ink-2); }
-.chart.region-chart { margin-top: 28px; max-width: 560px; }
+.chart.region-chart { margin: 0 0 40px; max-width: 560px; }
 .region-chart .chart-title { font-weight: 600; color: var(--ink-2); font-size: 14px; line-height: 20px; margin-bottom: 10px; }
 .region-chart .bars { grid-template-columns: minmax(7.5rem, 13rem) 1fr; row-gap: 6px; }
 .region-chart .bars .name { white-space: normal; line-height: 18px; text-wrap: balance; }
@@ -277,7 +277,7 @@ code.ident { font: 0.875em var(--mono); background: var(--wash); border: 1px sol
 
 .table-scroll { overflow: auto; max-height: 480px; margin: 0 -4px; border-radius: 4px; overscroll-behavior-x: contain; }
 .table-scroll:focus-visible { outline-offset: 0; }
-table { width: 100%; border-collapse: separate; border-spacing: 0; font-size: 14px; line-height: 20px; }
+table { width: 100%; border-collapse: separate; border-spacing: 0; font-size: 14px; line-height: 20px; font-variant-numeric: tabular-nums; }
 th {
   position: sticky; top: 0; z-index: 1; background: var(--surface); text-align: left; font-weight: 600; color: var(--ink-2);
   border-bottom: 1px solid var(--rule); padding: 8px 10px; white-space: nowrap;
