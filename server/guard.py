@@ -5,8 +5,8 @@
     limit = check_live(store, ip)               # None, or a Limited to return instead of calling the model
     cache_put(store, key, result_dict)
 
-Limits (Khaled, Nov 3): 10 live questions per hour per IP, 150 per day in total. A question counts as
-live only when it gets past the cache, so cache hits and the static examples never count.
+Limits (Khaled, Nov 3; per-IP raised from 10 on Nov 6): 20 live questions per hour per IP, 150 per day in total.
+A question counts as live only when it gets past the cache, so cache hits and the static examples never count.
 
 Counters are fixed windows: INCR + EXPIRE NX on a key named after the hour (per IP) or the UTC day (global).
 The per-IP counter is checked first, so a client that is over its own limit never uses up the global cap.
@@ -25,7 +25,7 @@ from dataclasses import dataclass
 
 import httpx2
 
-HOURLY_PER_IP = 10
+HOURLY_PER_IP = 20
 DAILY_TOTAL = 150
 CACHE_TTL_S = 30 * 24 * 3600
 REDIS_TIMEOUT_S = 3.0

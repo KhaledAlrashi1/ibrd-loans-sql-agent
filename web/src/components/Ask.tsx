@@ -59,7 +59,7 @@ export function Ask({ examples }: { examples: ExamplesFile }) {
   const loading = view.kind === "loading";
 
   // Wake the API instance while the visitor reads or types, so the first live question skips the cold start.
-  // A cold instance takes about 10 s; say so instead of leaving a silent spinner. Any reply (even a 503) or a
+  // A cold instance takes about 15 s; say so instead of leaving a silent spinner. Any reply (even a 503) or a
   // network failure ends the wait: /api/ask then reports the problem itself.
   useEffect(() => {
     let answered = false;
@@ -157,7 +157,7 @@ export function Ask({ examples }: { examples: ExamplesFile }) {
         </div>
         <p id="q-problem" className="problem" role="alert">{problem}</p>
         <p className="wake" role="status">
-          {server === "waking" && <><span className="wake-dot" aria-hidden="true" />Waking up the server (~10 s). The examples below work now.</>}
+          {server === "waking" && <><span className="wake-dot" aria-hidden="true" />Waking up the server (~15 s). The examples below work now.</>}
         </p>
       </form>
 

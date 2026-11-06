@@ -351,7 +351,7 @@ All items must pass. Otherwise **no-go: Streamlit stays the public demo** and v2
 | 7 | Live: "What's the weather in Kuwait?" | Refuse state |
 | 8 | Empty input; 301-character input | Inline message; **no request reaches the model** (no Anthropic usage, Vercel log shows `invalid`) |
 | 9 | Repeat a live question (different case/spacing) | `source: "cache"`, latency < 300 ms, labelled cached |
-| 10 | 7 requests in one minute from one IP | 7th returns 429 `limited` with countdown |
+| 10 | 21 live (uncached) questions in one hour from one IP | 21st returns 429 `limited` with countdown; the first 20 answer |
 | 11 | Anthropic Console → `ibrd-demo` workspace usage | Spend from today's checks appears under the v2 key; $10 cap still set |
 | 12 | `grep -r sk-ant web/.next` and view-source of the page | No match |
 | 13 | Phone (390 px) and desktop, light and dark | No horizontal page scroll; matches mockup |
@@ -376,7 +376,7 @@ These replace the proposals above where they differ.
 
 | # | Topic | Decision |
 |---|---|---|
-| 1 | Rate limits | **10 live questions per hour per IP; 150 live questions per day globally.** Cache hits and cached examples don't count toward either. No separate per-minute burst limit (replaces the 6/min and 20/day proposal in section 3). |
+| 1 | Rate limits | **20 live questions per hour per IP (raised from 10 on Nov 6); 150 live questions per day globally.** Cache hits and cached examples don't count toward either. No separate per-minute burst limit (replaces the 6/min and 20/day proposal in section 3). |
 | 2 | Fallback | Fly.io (section 1.4, option A) is used **only if the gate fails**, and needs Khaled's approval first (account + card). |
 | 3 | Cached examples | Generated **once** by the real agent from merged `main`, committed as-is, labelled "Cached example". If D15's caveat is misleading again (e.g. "the count may be lower than 44" next to 44), replace example 4 with D09. **Never reroll or hand-edit.** |
 | 4 | Mockup feedback | None given. "Calm ledger" proceeds as specified in section 5. |

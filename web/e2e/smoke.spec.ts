@@ -55,7 +55,7 @@ test("cold server: visible waking state, examples still instant, live question w
     await r.fulfill({ json: live({ question: "Top undisbursed?" }) });
   });
   await page.goto("/");
-  const status = page.getByRole("status").filter({ hasText: "Waking up the server (~10 s)" });
+  const status = page.getByRole("status").filter({ hasText: "Waking up the server (~15 s)" });
   await expect(status).toBeVisible();
 
   await page.getByRole("button", { name: /Which 10 countries have the most undisbursed/ }).click();
@@ -63,7 +63,7 @@ test("cold server: visible waking state, examples still instant, live question w
   expect(calls).toEqual([]);
 
   await askLive(page, "Top undisbursed?");
-  await expect(page.locator(".step.active")).toHaveText("Waking up the server (~10 s)");
+  await expect(page.locator(".step.active")).toHaveText("Waking up the server (~15 s)");
   await expect(page.locator(".step.todo")).toHaveCount(4);
   wake();
   await expect(status).toHaveCount(0);

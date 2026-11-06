@@ -174,7 +174,11 @@ def test_cache_key_changes_with_the_cache_version(monkeypatch):
 
 # --- limits -----------------------------------------------------------------------------------------------------
 
-def test_eleventh_live_question_in_an_hour_is_limited(client, calls):
+def test_limits_are_20_per_hour_per_ip_and_150_per_day():
+    assert (guard.HOURLY_PER_IP, guard.DAILY_TOTAL) == (20, 150)
+
+
+def test_twenty_first_live_question_in_an_hour_is_limited(client, calls):
     for i in range(guard.HOURLY_PER_IP):
         assert ask(client, f"question {i}").status_code == 200
     r = ask(client, "one more")
@@ -214,7 +218,7 @@ def test_x_forwarded_for_is_ignored_without_vercel_headers(client, calls):
     for i in range(guard.HOURLY_PER_IP):
         client.post("/api/ask", json={"question": f"q{i}"}, headers={"x-forwarded-for": f"10.0.0.{i}"})
     r = client.post("/api/ask", json={"question": "next"}, headers={"x-forwarded-for": "10.9.9.9"})
-    assert r.status_code == 429  # all eleven counted against the socket peer
+    assert r.status_code == 429  # all twenty-one counted against the socket peer
 
 
 def test_global_daily_cap(client, calls, monkeypatch):

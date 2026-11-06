@@ -6,7 +6,7 @@
 import { IconCheck } from "./icons";
 
 export const STEPS = ["Understanding the question", "Writing SQL", "Checking the SQL", "Running it on the data"];
-export const WAKE_STEP = "Waking up the server (~10 s)";
+export const WAKE_STEP = "Waking up the server (~15 s)";
 
 type Wake = "none" | "active" | "done";
 
