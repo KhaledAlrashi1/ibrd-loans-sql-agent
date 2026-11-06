@@ -119,6 +119,18 @@ def comparison_claims(message: str, assumptions: list[str], rows) -> list[str] |
     return bad
 
 
+def caveat_ok(terms_ok: bool | None, claims: list[str] | None) -> bool | None:
+    """The headline caveat result for one answer: None when nothing was checked, else pass/fail.
+
+    terms_ok is caveat_check's ok (must_mention and must_not_mention), or None; claims is comparison_claims's.
+    A contradicted comparison claim fails the caveat, also on a question with no caveat terms; such a
+    question is then counted as checked.
+    """
+    if claims:
+        return False
+    return terms_ok
+
+
 def score(q: dict, status: str, rows, scoring: dict) -> tuple[str, str]:
     """Return (outcome, reason) with outcome in correct | abstained | wrong (rules at the top of questions.yaml).
 

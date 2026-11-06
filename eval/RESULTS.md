@@ -123,3 +123,31 @@ does and don't predict how the result compares to a number.
 D15 now answers 44 with "FY2027 is partial in this snapshot: it only covers 2026-07-01 to 2026-09-30, so the
 full-year count could be higher." and "Guarantees excluded (is_guarantee = FALSE); FY2027 has no guarantees
 anyway." Heldout was not run.
+
+### Headline caveat count now includes both new checks
+
+Until now the headline "caveats passed/checked" counted only `must_mention` and `must_not_mention`; a
+contradicted comparison claim was a separate report line. Now one function, `caveat_ok` in
+`src/agent/scoring.py`, gives each answer one caveat result, used by both `run_eval.py` and `rescore.py`:
+
+- it fails when a `must_mention` term is missing, a `must_not_mention` term is found, **or** a comparison
+  claim is contradicted by the single-number result;
+- a contradicted claim on a question with no caveat terms also counts, as a checked answer that fails
+  (so the denominator can grow above 3).
+
+Outcomes (correct / abstained / wrong) still never change. No gold values changed.
+
+**All saved dev runs re-scored** (`scripts/rescore.py`, no model calls; heldout not read):
+
+| Run | File | Outcomes (c / a / w) | Caveats (headline) |
+|---|---|---|---|
+| Phase 3 first run | `results/20261101-171538_dev.json` | 19 / 1 / 0 | 3/3 |
+| dev 1 | `results/20261101-173532_dev.json` | 20 / 0 / 0 | 3/3 |
+| dev 2 | `results/20261101-173649_dev.json` | 20 / 0 / 0 | 3/3 |
+| dev 3 | `results/20261101-173749_dev.json` | 20 / 0 / 0 | **2/3** (D15: `must_not_mention` and the claim "lower than 44") |
+| post-hardening | `results/20261103-191552_dev.json` | 20 / 0 / 0 | 3/3 |
+| dev (KI-1) | `results/20261106-140841_dev.json` | 20 / 0 / 0 | 3/3 |
+
+Same numbers as under the previous counting: the only contradicted claim in any run is D15 in dev 3, which
+already failed `must_not_mention`. The `summary.caveats` saved inside older result files uses the counting
+of its day; `rescore.py` is the current number.

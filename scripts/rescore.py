@@ -3,8 +3,9 @@
     uv run python scripts/rescore.py eval/results/20261101-173532_dev.json [more files...]
 
 Uses the same scoring code as run_eval.py (src/agent/scoring.py). For each file, prints the outcomes
-as saved and as re-scored, the caveat check before and after (now including must_not_mention and the
-comparison-claim check), every question whose outcome changed and every caveat that fails now.
+as saved and as re-scored, the caveat check before and after (now must_mention, must_not_mention and the
+comparison-claim check, all three counted in "caveats"), every question whose outcome changed and every
+caveat that fails now.
 """
 
 import argparse
@@ -18,7 +19,7 @@ import yaml
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT))
 
-from src.agent.scoring import caveat_check, comparison_claims, score  # noqa: E402
+from src.agent.scoring import caveat_check, caveat_ok, comparison_claims, score  # noqa: E402
 
 QUESTIONS = ROOT / "eval" / "questions.yaml"
 OUTCOMES = ("correct", "abstained", "wrong")
@@ -47,15 +48,16 @@ def rescore_run(run: dict, spec: dict) -> dict:
             caveats_saved["checked"] += 1
             caveats_saved["passed"] += rec["caveat"]["ok"]
         caveat = caveat_check(q, rec["message"], rec["assumptions"]) if rec["status"] == "answer" else None
-        if caveat is not None:
-            caveats_now["checked"] += 1
-            caveats_now["passed"] += caveat[0]
-            if caveat[2]:
-                changed.append(f"{rec['id']}: caveat must not mention {caveat[2]}")
+        if caveat is not None and caveat[2]:
+            changed.append(f"{rec['id']}: caveat must not mention {caveat[2]}")
         claims = comparison_claims(rec["message"], rec["assumptions"], rec["result"]["rows"]) \
             if rec["status"] == "answer" else None
         if claims:
             changed.append(f"{rec['id']}: claim contradicted by the result {rec['result']['rows']}: {claims}")
+        verdict = caveat_ok(None if caveat is None else caveat[0], claims)
+        if verdict is not None:
+            caveats_now["checked"] += 1
+            caveats_now["passed"] += verdict
     return {"saved": saved, "now": now, "caveats_saved": caveats_saved, "caveats_now": caveats_now,
             "changed": changed, "warnings": warnings}
 

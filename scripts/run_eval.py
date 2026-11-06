@@ -6,7 +6,7 @@
 Outcomes per question: correct | abstained | wrong (rules at the top of questions.yaml).
 Caveat column (reported only, never changes the outcome): must_mention terms found and must_not_mention terms
 absent in message + assumptions, and no comparison claim ("may be lower than 44") that the single-number result
-contradicts (src/agent/scoring.py).
+contradicts (src/agent/scoring.py). All three count in the headline "caveats: passed/checked".
 """
 
 import argparse
@@ -24,7 +24,7 @@ sys.path.insert(0, str(ROOT))
 
 from src.agent import config  # noqa: E402
 from src.agent.agent import answer  # noqa: E402
-from src.agent.scoring import caveat_check, comparison_claims, plain, score  # noqa: E402
+from src.agent.scoring import caveat_check, caveat_ok, comparison_claims, plain, score  # noqa: E402
 
 QUESTIONS = ROOT / "eval" / "questions.yaml"
 RESULTS_DIR = ROOT / "eval" / "results"
@@ -96,11 +96,12 @@ def main() -> int:
     by_category = defaultdict(Counter)
     for rec in records:
         by_category[rec["category"]][rec["outcome"]] += 1
+    verdicts = [caveat_ok(rec["caveat"]["ok"] if rec["caveat"] else None, rec["claims"]) for rec in records]
     summary = {
         "outcomes": {o: totals[o] for o in OUTCOMES},
         "by_category": {c: {o: n[o] for o in OUTCOMES} for c, n in sorted(by_category.items())},
-        "caveats": {"passed": sum(1 for rec in records if rec["caveat"] and rec["caveat"]["ok"]),
-                    "checked": sum(1 for rec in records if rec["caveat"])},
+        "caveats": {"passed": sum(1 for v in verdicts if v is True),
+                    "checked": sum(1 for v in verdicts if v is not None)},
         "comparison_claims": {"contradicted": sum(1 for rec in records if rec["claims"]),
                               "checked": sum(1 for rec in records if rec["claims"] is not None)},
         "latency_s": {"median": round(statistics.median(latencies), 2), "max": max(latencies)},
@@ -120,7 +121,8 @@ def main() -> int:
     print(f"\n{'category':10} {'correct':>7} {'abstained':>9} {'wrong':>5}")
     for cat, c in summary["by_category"].items():
         print(f"{cat:10} {c['correct']:7} {c['abstained']:9} {c['wrong']:5}")
-    print(f"\ncaveats: {summary['caveats']['passed']}/{summary['caveats']['checked']} checked answers pass")
+    print(f"\ncaveats: {summary['caveats']['passed']}/{summary['caveats']['checked']} checked answers pass "
+          "(must_mention, must_not_mention, comparison claims)")
     print(f"comparison claims: {summary['comparison_claims']['contradicted']} of "
           f"{summary['comparison_claims']['checked']} single-number answers contradict their result")
     print(f"latency: median {summary['latency_s']['median']:.1f} s, max {summary['latency_s']['max']:.1f} s")

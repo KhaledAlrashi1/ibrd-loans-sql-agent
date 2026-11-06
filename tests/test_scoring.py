@@ -3,7 +3,7 @@
     pytest -q
 """
 
-from src.agent.scoring import caveat_check, comparison_claims
+from src.agent.scoring import caveat_check, caveat_ok, comparison_claims
 
 D15 = {"must_mention": [["partial"]], "must_not_mention": ["lower than", "fewer than", "may be lower"]}
 KI1 = ["FY2027 is partial (44 loans and guarantees in total).", "Guarantees excluded, so the count may be lower than 44."]
@@ -38,3 +38,12 @@ def test_only_single_number_results_are_checked():
     assert comparison_claims("lower than 44", [], [[44], [45]]) is None
     assert comparison_claims("lower than 44", [], [["Turkiye", 44, 1.5]]) is None
     assert comparison_claims("lower than 44", [], [["Turkiye", 44]]) == ["lower than 44"]
+
+
+def test_headline_caveat_counts_terms_and_claims():
+    assert caveat_ok(None, None) is None          # nothing checked
+    assert caveat_ok(None, []) is None            # single number, no claims, no caveat terms
+    assert caveat_ok(True, []) is True
+    assert caveat_ok(False, None) is False        # must_mention missing or must_not_mention found
+    assert caveat_ok(True, ["lower than 44"]) is False
+    assert caveat_ok(None, ["lower than 44"]) is False  # a claim fails even without caveat terms
