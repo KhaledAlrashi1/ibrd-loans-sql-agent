@@ -1,0 +1,39 @@
+291
+
+Ask the IBRD loan book
+
+Ask a question in plain English. An AI model writes the SQL, the app checks it and runs it on the official data, and you see the answer, the SQL and every assumption behind it.
+
+Data as of Sep 30, 2026 · 9,538 loans and guarantees
+
+Your question about IBRD loans
+Ask
+Press Enter to ask
+0 / 300
+TRY AN EXAMPLE
+Which 10 countries have the most undisbursed IBRD loans?
+Cached · instant
+Which 5 Middle East and North Africa countries owe the most to the IBRD?
+Cached · instant
+What was the total amount of IBRD loans approved in each fiscal year from 2020 to 2025?
+Cached · instant
+Which loans are active?
+Cached · instant
+
+WHAT’S IN THIS DATA
+One row
+One IBRD loan or guarantee, by loan number. 9,538 rows, a snapshot as of Sep 30, 2026.
+Main fields
+Country and region, loan type and status, project, board approval date and fiscal year, and amounts in US$: approved, cancelled, undisbursed, disbursed, repaid and still owed.
+Answers well
+Totals, counts and rankings by country, region, fiscal year, loan status or loan type.
+Can’t answer
+Sectors, project results, GDP or other economic indicators, lending by IDA or anyone other than the IBRD, the currency of each loan (empty in this snapshot), anything after Sep 30, 2026, or forecasts.
+Defaults
+Loan questions leave out guarantees. “Year” means the World Bank fiscal year (July to June). The exchange-rate basis differs by amount column: undisbursed amounts are at end-of-period rates, disbursed and repaid amounts at historical rates.
+
+Independent project, not affiliated with the World Bank.
+
+Data: World Bank, IBRD Statement of Loans and Guarantees (DS00047), CC BY 4.0. Snapshot of Sep 30, 2026; columns renamed and two derived flags added.
+
+Code on GitHub

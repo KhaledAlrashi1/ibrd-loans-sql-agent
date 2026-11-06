@@ -1,0 +1,57 @@
+184
+
+Ask the IBRD loan book
+
+Ask in plain English. An AI writes the SQL, the app checks and runs it, and you see the SQL and every assumption.
+
+Outstanding
+$296.7B
+Approved since FY1947
+$984.7B
+Countries
+143
+Loans
+9,425
+Outstanding by region
+Latin America & Caribbean
+$86.6B
+Europe & Central Asia
+$65.4B
+East Asia & Pacific
+$56.4B
+Middle East, N. Africa, Afg. & Pak.
+$43.6B
+South Asia
+$24.7B
+Eastern & Southern Africa
+$16.3B
+Western & Central Africa
+$3.7B
+
+Snapshot Sep 30, 2026 · guarantees excluded
+
+Your question about IBRD loans
+Ask
+Try an example · instant
+Which 10 countries have the most undisbursed IBRD loans?
+Which 5 Middle East and North Africa countries owe the most to the IBRD?
+What was the total amount of IBRD loans approved in each fiscal year from 2020 to 2025?
+Which loans are active?
+
+Ask about
+Countries
+Regions
+Fiscal years
+Loan status
+Loan type
+Approved, disbursed, owed
+Not in this data
+Sectors
+Project results
+GDP
+IDA lending
+After Sep 30, 2026
+
+Data: World Bank, IBRD Statement of Loans and Guarantees, CC BY 4.0; columns renamed, two flags derived. Not affiliated with the World Bank.
+
+Code on GitHub
