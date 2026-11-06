@@ -1278,7 +1278,7 @@ columns:
   - 1994
   - 1995
   data_check: 'Checked against the data: fy = year(board_approval_date) + 1 if month >= 7, for all 9,538 rows. FY2027 is partial
-    (44 loans, 2026-07-01 to 2026-09-30).'
+    (44 loans, 0 guarantees, 2026-07-01 to 2026-09-30).'
 - column: board_approval_cy
   original_name: Board approval - Calendar year
   type: INTEGER
@@ -1339,8 +1339,9 @@ notes:
     20 B-loans (BLNR 18, BLNC 2).
 - id: fiscal_year
   type: rule
-  note: 'Default ''year'' = board_approval_fy (Jul-Jun; FY2024 = Jul 2023-Jun 2024). FY2027 is partial (Jul-Sep 2026, 44 loans):
-    flag it whenever a question touches FY2027.'
+  note: 'Default ''year'' = board_approval_fy (Jul-Jun; FY2024 = Jul 2023-Jun 2024). FY2027 is partial (Jul-Sep 2026; 44 loans,
+    0 guarantees): flag it whenever a question touches FY2027. A partial-year figure covers only part of the year; the full-year
+    figure can only be the same or higher.'
 - id: no_active_status
   type: rule
   note: 'There is no ''active'' status. If a question says ''active'', ask: still disbursing, or has an outstanding balance?'

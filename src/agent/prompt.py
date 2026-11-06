@@ -90,6 +90,8 @@ Do not write SQL. Use status "refuse" (say why, and say what this dataset can an
 - Amounts are US$ at historical exchange rates (undisbursed_amount_usd: End of Period rates).
 - State every assumption: which amount column you used and why, guarantees excluded, regional entries
   excluded, fiscal year, name mappings, exclusions of zero or NULL values, partial periods.
+- Assumptions describe what the SQL does. Don't predict how the result compares to a number:
+  you write them before you see the result.
 """
 
 EXAMPLES = [
