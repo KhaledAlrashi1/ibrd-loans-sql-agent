@@ -4,11 +4,15 @@ Portfolio project for a World Bank application (MNA Fellow, Modeling, Data & Ana
 A user asks a plain-English question about IBRD loans; the app generates SQL with an LLM,
 validates it, runs it on a local DuckDB file, and shows the answer as a table (+ chart when it fits) with the SQL.
 
-**Hard deadline: live demo + public repo by Nov 17, 2026.**
+**Status: shipped (Nov 2026).** Live demo https://ibrd-loans-sql-agent.vercel.app, public repo on GitHub.
+The demo is frozen: change it only when Khaled asks. Deadline was Nov 17, 2026.
+
+- **Live app (v2):** Next.js page (`web/`) + FastAPI (`server/`) on Vercel, both calling the same agent in `src/agent/`.
+- **Fallback:** the Streamlit app (`app.py`), same agent, kept for local use.
 
 ## Priorities (in this order)
 1. **Correct answers.** Saying "I'm not sure" beats returning a wrong number.
-2. **Finished and live by Nov 17.** Cut features before cutting quality.
+2. **Live and stable.** Cut features before cutting quality.
 3. **A README a hiring manager understands in 60 seconds.**
 
 ## Stack
@@ -16,7 +20,11 @@ validates it, runs it on a local DuckDB file, and shows the answer as a table (+
 - DuckDB (opened `read_only=True` by the app)
 - Anthropic API, model set in `src/agent/config.py` (default `claude-sonnet-5-5`)
 - `sqlglot` for SQL validation
-- Streamlit UI, deployed on Streamlit Community Cloud
+- API: FastAPI (`server/`), Upstash Redis for rate limits and the answer cache (memory locally)
+- Page: Next.js + React (`web/`, Node 22+), no chart library; Playwright tests in `web/e2e/` (mocked API) and
+  `web/e2e-live/` (a deployed preview)
+- Hosting: Vercel project `ibrd-loans-sql-agent`, both services in one deployment (`vercel.json`)
+- Fallback UI: Streamlit (`app.py`), local only
 - No LangChain / agent frameworks: plain functions, easy to read and explain.
 
 ## Commands
@@ -24,24 +32,40 @@ validates it, runs it on a local DuckDB file, and shows the answer as a table (+
 source .venv/bin/activate
 python scripts/build_db.py            # raw CSV -> DuckDB file in the temp dir, config.DB_PATH (fails loudly if checks fail)
 python scripts/run_eval.py            # scores the agent (dev split) -> eval/results/<timestamp>_dev.json
-pytest -q                             # guardrail tests
-streamlit run app.py
+python scripts/build_stats.py         # the page's headline numbers -> web/src/data/stats.json
+python scripts/precompute_examples.py # the 4 cached examples -> web/src/data/examples.json (live calls)
+pytest -q                             # offline: guardrails, executor limits, API, scoring, page numbers
+uvicorn server.main:app --port 8000   # the API (use 127.0.0.1:8000 locally, not localhost)
+cd web && npm run dev                 # the page on :3000, proxies /api to :8000
+cd web && npm run build && npx playwright test          # smoke tests, /api mocked
+streamlit run app.py                  # fallback UI
 ```
+
+## Deploys (Vercel, CLI only)
+- No Git integration: pushing a branch creates no deployment. `vercel deploy --yes` = preview,
+  `vercel deploy --prod --yes` = production; `vercel ls` for URLs.
+- Previews are behind Vercel protection. The preview suite (`web/playwright.preview.config.ts`, at most 1 live
+  call) needs the project's automation-bypass secret in `VERCEL_AUTOMATION_BYPASS_SECRET`, read from
+  `vercel api /v9/projects/ibrd-loans-sql-agent` inside the same shell command. Never print it.
+- After a production deploy: `/` and `/api/health` return 200 with no cookie.
 
 ## Repo structure
 ```
-app.py                         Streamlit UI only (no business logic)
+web/                           v2 page (Next.js); web/src/data/*.json are generated or test-checked, never hand-edited
+server/                        v2 API (FastAPI): contract, rate limits, cache
+vercel.json                    both services, /api/* -> server
+app.py                         fallback Streamlit UI only (no business logic)
 data/raw/ibrd_snapshot_2026-09-30.csv   FROZEN source snapshot (committed)
 <tempdir>/ibrd-loans-sql-agent-<hash>/ibrd.duckdb   built by scripts/build_db.py (config.DB_PATH; nothing is written to data/)
 src/agent/
   config.py                    model name, row limit, timeout
   data_dictionary.yaml         single source of truth: feeds the prompt AND the README
   prompt.py  llm.py  guardrails.py  executor.py  agent.py
-scripts/build_db.py  scripts/run_eval.py
+scripts/build_db.py  scripts/run_eval.py  scripts/build_stats.py  scripts/precompute_examples.py
 eval/questions.yaml            question, gold SQL, split (dev / heldout), notes
-eval/results/
-tests/test_guardrails.py
-docs/                          demo GIF, screenshots
+eval/RESULTS.md  eval/results/ every scored run; the page's trust numbers are checked against these
+tests/  server/tests/          pytest
+docs/                          security.md, known-issues.md, demo GIF, screenshots
 ```
 
 ## Data facts (verified Oct 31, 2026)

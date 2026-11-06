@@ -7,6 +7,7 @@
 import { useId, useRef, useState } from "react";
 import type { Answer } from "@/lib/types";
 import { exactValue, isYearColumn, seconds } from "@/lib/format";
+import { partialYearNote } from "@/lib/partial";
 import { BarChart, barsFit } from "./BarChart";
 import { LineChart } from "./LineChart";
 import { ExactSwitch, ResultTable, hasRoundedValues } from "./ResultTable";
@@ -14,8 +15,6 @@ import { SqlBlock } from "./SqlBlock";
 import { IconAlert, IconBlock, IconCalendar, IconChevron, IconQuestion, IconSearchOff } from "./icons";
 
 const UNRELIABLE = "I couldn't answer that reliably.";
-const PARTIAL = /\bpartial(ly)?\b/i;
-const NEGATED = /\b(not|no)\b/i;  // "FY2027 is not in the range, so no partial-year figures are included"
 const IDENT = /([A-Za-z0-9]+(?:_[A-Za-z0-9]+)+)/;  // snake_case tokens, e.g. borrowers_obligation_usd
 
 // Fixed follow-ups on a clarify card, each checked on the live agent to return an answer (Nov 6, 2026).
@@ -99,7 +98,7 @@ function Body({ data, onAsk }: { data: Answer; onAsk: (question: string) => void
 
 function AnswerBody({ data }: { data: Answer }) {
   const single = data.rows.length === 1 && data.columns.length === 1;
-  const partial = data.assumptions.find((a) => PARTIAL.test(a) && !NEGATED.test(a));
+  const partial = partialYearNote(data.assumptions, data.data_as_of);
   return (
     <>
       <h2 id="result-heading" className="answer-q">{data.question}</h2>
