@@ -9,12 +9,22 @@ import { MAX_QUESTION_CHARS, validateQuestion } from "@/lib/format";
 import { AnswerCard } from "./AnswerCard";
 import { NoticeCard, OFFLINE } from "./NoticeCard";
 import { Progress } from "./Progress";
+import { IconArrow } from "./icons";
 
 const WRITING_AFTER_MS = 700;   // "Writing SQL" once the request has clearly reached the model
 const TICK_MS = 150;            // each confirmed step, once the response is in
 const TIMEOUT_MS = 70_000;      // above the API's 60 s maximum duration
 const WAKING_AFTER_MS = 800;    // a warm /api/health answers well within this, so a warm page never shows "waking"
 const COUNT_FROM = 250;         // the character count appears only near the limit
+
+// What each example shows. Keyed by question so a regenerated examples.json with new questions fails the smoke
+// test instead of showing the wrong tag.
+const EXAMPLE_TAGS: Record<string, string> = {
+  "Which 10 countries have the most undisbursed IBRD loans?": "Ranking",
+  "Which 5 Middle East and North Africa countries owe the most to the IBRD?": "Region filter",
+  "What was the total amount of IBRD loans approved in each fiscal year from 2020 to 2025?": "Trend chart",
+  "Which loans are active?": "Asks before guessing",
+};
 
 /** "checking" until /api/health answers or is slow, "waking" while a cold instance starts, then "ready". */
 type Server = "checking" | "waking" | "ready";
@@ -174,7 +184,9 @@ export function Ask({ examples }: { examples: ExamplesFile }) {
             <li key={e.question}>
               <button type="button" onClick={() => showExample(e)}
                 aria-current={view.kind === "answer" && view.data === e ? "true" : undefined}>
-                {e.question}
+                <span className="ex-q">{e.question}</span>
+                {EXAMPLE_TAGS[e.question] && <span className="ex-tag">{EXAMPLE_TAGS[e.question]}</span>}
+                <IconArrow />
               </button>
             </li>
           ))}

@@ -12,22 +12,36 @@ export function isRanking(data: Answer): boolean {
   return data.chart?.kind === "bar" && /\border\s+by\b[\s\S]*\blimit\s+\d+\s*;?\s*$/i.test(data.sql);
 }
 
-export function ResultTable({ data }: { data: Answer }) {
-  const [exact, setExact] = useState(false);
+const numericColumns = ({ columns, rows }: Answer) =>
+  columns.map((_, j) => rows.every((r) => r[j] === null || typeof r[j] === "number"));
+
+/** True when some value is shown rounded ($14.85B), so "Exact values" has something to show. */
+export function hasRoundedValues(data: Answer): boolean {
+  const numeric = numericColumns(data);
+  return data.columns.some((c, j) => numeric[j] && c.unit !== "plain");
+}
+
+export function ExactSwitch({ on, onChange }: { on: boolean; onChange: (on: boolean) => void }) {
+  return (
+    <button type="button" role="switch" aria-checked={on} className="switch" onClick={() => onChange(!on)}>
+      <span className="switch-track" aria-hidden="true"><span className="switch-thumb" /></span>
+      Exact values
+    </button>
+  );
+}
+
+/** With `exact` given, the caller owns the switch (the Chart/Table bar); otherwise the table shows its own. */
+export function ResultTable({ data, exact: controlled }: { data: Answer; exact?: boolean }) {
+  const [own, setOwn] = useState(false);
+  const exact = controlled ?? own;
   const { columns, rows, display_rows } = data;
-  const numeric = columns.map((_, j) => rows.every((r) => r[j] === null || typeof r[j] === "number"));
-  const rounded = columns.some((c, j) => numeric[j] && c.unit !== "plain");
+  const numeric = numericColumns(data);
   const rank = isRanking(data);
 
   return (
     <div className="table-block">
-      {rounded && (
-        <div className="table-tools">
-          <button type="button" role="switch" aria-checked={exact} className="switch" onClick={() => setExact((v) => !v)}>
-            <span className="switch-track" aria-hidden="true"><span className="switch-thumb" /></span>
-            Exact values
-          </button>
-        </div>
+      {controlled === undefined && hasRoundedValues(data) && (
+        <div className="table-tools"><ExactSwitch on={own} onChange={setOwn} /></div>
       )}
       <div className="table-scroll" tabIndex={0} role="region" aria-label="Result table">
         <table>

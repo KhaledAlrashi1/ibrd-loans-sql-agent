@@ -38,6 +38,9 @@ export const IconCopy = (p: P) => (
 export const IconChevron = (p: P) => (
   <Svg {...p}><path d="M6 3.5L10.5 8 6 12.5" /></Svg>
 );
+export const IconArrow = (p: P) => (
+  <Svg {...p}><path d="M2.5 8h10.5M9 4l4 4-4 4" /></Svg>
+);
 export const IconRetry = (p: P) => (
   <Svg {...p}><path d="M13.5 8a5.5 5.5 0 1 1-1.6-3.9" /><path d="M13.6 2.2v2.9h-2.9" /></Svg>
 );

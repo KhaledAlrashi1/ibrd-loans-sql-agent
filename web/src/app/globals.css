@@ -85,7 +85,8 @@ h1 { font: 600 31px/1.16 var(--serif); letter-spacing: -0.01em; margin: 0 0 12px
 .stats dd { margin: 0; font: 600 30px/1.1 var(--sans); letter-spacing: -0.02em; font-variant-numeric: tabular-nums; }
 .stats dt { font-size: 14px; line-height: 20px; color: var(--ink-2); }
 .chart.region-chart { margin: 0 0 40px; max-width: 560px; }
-.region-chart .chart-title { font-weight: 600; color: var(--ink-2); font-size: 14px; line-height: 20px; margin-bottom: 10px; }
+.region-chart .chart-title { font-weight: 600; color: var(--ink-2); font-size: 14px; line-height: 20px; margin-bottom: 12px; }
+.region-chart .chart-sub { display: block; font-weight: 400; font-size: 13px; line-height: 18px; color: var(--muted); }
 .region-chart .bars { grid-template-columns: minmax(7.5rem, 13rem) 1fr; row-gap: 6px; }
 .region-chart .bars .name { white-space: normal; line-height: 18px; text-wrap: balance; }
 .region-chart .bars .track { min-height: 22px; padding-right: 3.75rem; }
@@ -136,25 +137,47 @@ h1 { font: 600 31px/1.16 var(--serif); letter-spacing: -0.01em; margin: 0 0 12px
 .examples-block { margin-bottom: 32px; }
 .examples { list-style: none; margin: 0; padding: 0; border-top: 1px solid var(--hairline); }
 .examples li { border-bottom: 1px solid var(--hairline); }
+/* Question, then its tag and an arrow on the right; on a phone the tag drops under the question. */
 .examples button {
-  width: 100%; min-height: 48px; text-align: left; font: 400 15px/1.4 var(--sans); color: var(--ink-2);
+  min-height: 48px; text-align: left; font: 400 15px/1.4 var(--sans); color: var(--ink-2);
   background: none; border: 0; padding: 12px 8px; margin: 0 -8px; width: calc(100% + 16px); border-radius: 8px;
-  display: flex; justify-content: space-between; align-items: center; gap: 16px;
+  display: grid; grid-template-columns: 1fr auto; grid-template-areas: "q arrow" "tag arrow"; align-items: center; column-gap: 16px;
   transition: background-color 120ms ease, color 120ms ease;
 }
-@media (hover: hover) { .examples button:hover { background: var(--wash); color: var(--ink); } }  /* no sticky highlight after a tap */
+.ex-q { grid-area: q; }
+.ex-tag { grid-area: tag; justify-self: start; font-size: 13px; line-height: 18px; color: var(--muted); white-space: nowrap; margin-top: 2px; }
+.examples button svg { grid-area: arrow; color: var(--muted); transition: transform 160ms var(--ease-out), color 120ms ease; }
+@media (min-width: 640px) {
+  .examples button { grid-template-columns: 1fr auto auto; grid-template-areas: "q tag arrow"; }
+  .ex-tag { margin-top: 0; }
+}
+@media (hover: hover) {  /* no sticky highlight after a tap */
+  .examples button:hover { background: var(--wash); color: var(--ink); }
+  .examples button:hover svg { color: var(--ink); transform: translateX(2px); }
+}
 .examples button:active { background: var(--hairline); }
 .examples button[aria-current="true"] { background: var(--wash); color: var(--ink); }
+.examples button[aria-current="true"] svg { color: var(--accent-ink); }
 
 /* ---------- what the data covers ---------- */
 .data-panel { margin: 0 0 40px; display: grid; gap: 12px; }
 .tag-row { display: grid; gap: 2px; }
 @media (min-width: 640px) { .tag-row { grid-template-columns: 8.5rem 1fr; gap: 16px; align-items: baseline; } }
 .tag-row h2 { font: 600 14px/20px var(--sans); color: var(--ink-2); margin: 0; }
-.tags { display: flex; flex-wrap: wrap; margin: 0; padding: 0; list-style: none; }
-.tags { column-gap: 0; row-gap: 2px; font-size: 15px; line-height: 22px; color: var(--ink); }
+/* Each tag stays on one line; balance evens the lines so no tag is left alone on the last one. */
+.tags { margin: 0; padding: 0; list-style: none; font-size: 15px; line-height: 24px; color: var(--ink); text-wrap: balance; }
+.tags li { display: inline-block; white-space: nowrap; }
 .tags li:not(:last-child)::after { content: "·"; margin: 0 8px; color: var(--muted); }
 .tag-row + .tag-row .tags { color: var(--muted); }
+
+/* ---------- why you can trust the answers ---------- */
+.trust { margin: 0 0 40px; }
+.trust dl { display: grid; gap: 10px; margin: 0; }
+.trust-row { display: grid; gap: 2px; }
+@media (min-width: 640px) { .trust-row { grid-template-columns: 8.5rem 1fr; gap: 16px; align-items: baseline; } }
+.trust dt { font: 600 14px/20px var(--sans); color: var(--ink-2); }
+.trust dd { margin: 0; font-size: 15px; line-height: 22px; color: var(--ink); font-variant-numeric: tabular-nums; text-wrap: pretty; }
+.trust dd a { white-space: nowrap; }
 
 /* ---------- card ---------- */
 .result-area { scroll-margin-top: 16px; margin-bottom: 40px; }
@@ -217,8 +240,9 @@ code.ident { font: 0.875em var(--mono); background: var(--wash); border: 1px sol
 .callout p { margin: 0; }
 .callout strong { font-weight: 600; }
 
-/* tabs */
-.seg { display: inline-flex; border: 1px solid var(--rule); border-radius: 10px; padding: 2px; background: var(--surface); margin-bottom: 16px; }
+/* tabs, with "Exact values" on the same line when the table is shown */
+.views-bar { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 8px 16px; margin-bottom: 16px; }
+.seg { display: inline-flex; border: 1px solid var(--rule); border-radius: 10px; padding: 2px; background: var(--surface); }
 .seg button {
   font: 500 13px/1 var(--sans); color: var(--ink-2); background: none; border: 0; border-radius: 8px;
   padding: 0 14px; min-height: 32px; transition: background-color 120ms ease, color 120ms ease;
@@ -305,14 +329,16 @@ td.rank + td, th.rank + th { position: static; }
 .assumptions { margin: 10px 0 4px; padding-left: 18px; list-style: disc; color: var(--ink-2); font-size: 14px; line-height: 21px; }
 .assumptions li { margin: 0 0 6px; padding-left: 2px; overflow-wrap: anywhere; }
 .assumptions li::marker { color: var(--muted); }
-.sql-box { position: relative; margin: 10px 0 4px; }
+/* Copy floats in the top-right corner: only the lines beside it are shortened, the rest use the full width.
+   Lines break at spaces only, so an identifier is never split: one that doesn't fit beside the button moves
+   below it, and one wider than the box scrolls. */
+.sql-box { display: flow-root; overflow-x: auto; margin: 10px 0 4px; padding: 14px; background: var(--wash); border-radius: 10px; }
 pre.sql {
-  margin: 0; padding: 14px 14px 14px; padding-right: 84px; background: var(--wash); border-radius: 10px;
-  font: 13px/21px var(--mono); white-space: pre-wrap; overflow-wrap: anywhere; color: var(--ink); tab-size: 2;
+  margin: 0; font: 13px/21px var(--mono); white-space: pre-wrap; overflow-wrap: normal; color: var(--ink); tab-size: 2;
 }
 .kw { color: var(--accent-ink); font-weight: 600; }
 .copy {
-  position: absolute; top: 8px; right: 8px; display: inline-flex; align-items: center; gap: 6px; min-height: 30px;
+  float: right; margin: -6px -6px 6px 12px; display: inline-flex; align-items: center; gap: 6px; min-height: 30px;
   padding: 0 10px; font: 500 12px/1 var(--sans); color: var(--ink-2); background: var(--surface);
   border: 1px solid var(--rule); border-radius: 8px; transition: transform 140ms var(--ease-out), color 120ms ease;
 }

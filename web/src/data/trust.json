@@ -1,0 +1,10 @@
+{
+  "_source": "Numbers for the page's 'Why you can trust the answers' section. tests/test_trust.py checks every value against eval/RESULTS.md, the run file, src/agent/config.py and eval/questions.yaml.",
+  "dev": { "correct": 20, "questions": 20, "run_file": "eval/results/20261106-143430_dev.json" },
+  "heldout": { "correct_first_scored": 9, "questions": 10 },
+  "results_doc": "eval/RESULTS.md",
+  "row_limit": 1000,
+  "timeout_s": 10,
+  "security_doc": "docs/security.md",
+  "clarify_case": { "id": "D18", "file": "eval/questions.yaml", "first_line": 370, "last_line": 379 }
+}
