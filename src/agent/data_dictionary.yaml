@@ -1057,6 +1057,7 @@ columns:
   type: DOUBLE
   description: The original US dollar amount of the loan that is committed and approved.
   source: official metadata DS00047
+  usd_basis: 'Historical exchange rates. Source: the dataset description ("Data are in U.S. dollars calculated using historical rates"); the column description itself names no rate.'
   nulls: 0
   example_values:
   - 1534001.57
@@ -1070,6 +1071,7 @@ columns:
   description: The portion of the undisbursed balance which has been cancelled (i.e. no longer available for future disbursement).
     Cancellations include terminations (where approved loan agreements were never signed).
   source: official metadata DS00047
+  usd_basis: Not documented.
   nulls: 0
   example_values:
   - 321.27
@@ -1081,6 +1083,7 @@ columns:
   description: The amount of a loan commitment that is still available to be drawn down. These currency amounts have been
     converted to US dollars at the exchange rates applicable at the End of Period date.
   source: official metadata DS00047
+  usd_basis: End of Period exchange rates (official column description).
   nulls: 0
   example_values:
   - 16764810.55
@@ -1092,6 +1095,7 @@ columns:
   description: The amount that has been disbursed from a loan commitment in equivalent US dollars calculated at the exchange
     rate on the value date of the individual disbursements.
   source: official metadata DS00047
+  usd_basis: 'Historical: the exchange rate on the value date of each disbursement (official column description).'
   nulls: 0
   example_values:
   - 9543457.46
@@ -1106,6 +1110,7 @@ columns:
   description: Total principal amounts paid or prepaid to IBRD in US dollars, calculated at the exchange rate on the value
     date of the individual repayments.
   source: official metadata DS00047
+  usd_basis: 'Historical: the exchange rate on the value date of each repayment (official column description).'
   nulls: 0
   example_values:
   - 2415695.57
@@ -1117,6 +1122,7 @@ columns:
   description: Where the exchange adjustment is shown separately, this is the amount disbursed and outstanding expressed as
     a stock of debt in historical US Dollars. Otherwise, this is the amount due and outstanding as of the End of Period date.
   source: official metadata DS00047
+  usd_basis: 'Historical US$ where the exchange adjustment is shown separately; otherwise the amount due as of the End of Period date (official column description). Which rows are which is not documented.'
   nulls: 0
   example_values:
   - 19788482.53
@@ -1130,6 +1136,7 @@ columns:
   description: The increase (decrease) in value of disbursed and outstanding amount due to exchange rate fluctuations. This
     amount added to "Due to IBRD" yields "Borrower's Obligation; includes exchange adjustments on the amounts Due to 3rd parties.
   source: official metadata DS00047
+  usd_basis: 'The revaluation itself: the change in value of the disbursed and outstanding amount due to exchange-rate fluctuations (official column description).'
   nulls: 0
   example_values:
   - -23218035.77
@@ -1141,6 +1148,7 @@ columns:
   description: "The Borrower Obligation is the outstanding balance for the loan as of the end of period date in US dollars\
     \ equivalent. \n\nThe Borrower's Obligation includes the amounts outstanding Due to 3rd parties."
   source: official metadata DS00047
+  usd_basis: 'Revalued for exchange-rate changes, not historical: due_to_ibrd_usd + exchange_adjustment_usd (official descriptions of both columns; holds for all 9,538 rows).'
   nulls: 0
   example_values:
   - 35802200.26
@@ -1152,6 +1160,7 @@ columns:
   type: DOUBLE
   description: Portion of loan sold to a third party.
   source: official metadata DS00047
+  usd_basis: Not documented.
   nulls: 0
   example_values:
   - 377729.84
@@ -1163,6 +1172,7 @@ columns:
   type: DOUBLE
   description: Amount repaid to a third party.
   source: official metadata DS00047
+  usd_basis: Not documented.
   nulls: 0
   example_values:
   - 377729.84
@@ -1173,6 +1183,7 @@ columns:
   type: DOUBLE
   description: Amount due to a third party.
   source: official metadata DS00047
+  usd_basis: Not documented.
   nulls: 0
   example_values:
   - 0.0
@@ -1182,6 +1193,7 @@ columns:
   description: The sum of the disbursed and outstanding amounts (net of repayments, i.e. Due to IBRD) plus undisbursed available
     amounts.
   source: official metadata DS00047
+  usd_basis: 'Not documented. It equals due_to_ibrd_usd + undisbursed_amount_usd, whose documented bases differ.'
   nulls: 0
   example_values:
   - 36743420.69
@@ -1369,9 +1381,17 @@ notes:
   type: rule
   note: 'Approved/committed/loan amount = original_principal_amount_usd. Received/disbursed = disbursed_amount_usd. ''Borrowed''
     is ambiguous: state which was used.'
-- id: historical_usd
-  type: fact
-  note: Amounts are US$ at historical exchange rates, except undisbursed_amount_usd (End of Period rates).
+- id: usd_basis
+  type: rule
+  note: 'The exchange-rate basis differs by amount column: each amount column states its US$ basis. The dataset description''s
+    "historical rates" does not hold for every column (undisbursed_amount_usd is at End of Period rates; borrowers_obligation_usd
+    is revalued for exchange-rate changes). When an assumption names a basis, use the basis of the column used; if it is "Not
+    documented", say the basis is not documented. Never say all amounts are at historical rates.'
+- id: terminated_zero_principal
+  type: rule
+  note: 'Approved amounts use original_principal_amount_usd as reported (no arithmetic). Terminated loans often show $0 original
+    principal (38 of 79 Terminated rows, all approved FY2013-FY2024), so approved totals exclude them. Terminated rows exist
+    in FY1997-FY2024. Mention this when an approved-amount query covers fiscal years with Terminated loans.'
 - id: region_is_current
   type: fact
   note: region is the current World Bank administrative region, even for old loans.
