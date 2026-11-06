@@ -37,7 +37,10 @@ test("idle page: title, examples, attribution, warm-up ping", async ({ page }) =
   await page.goto("/");
   await health;
   await expect(page.getByRole("heading", { level: 1 })).toHaveText("Ask the IBRD loan book");
-  await expect(page.getByRole("button", { name: /Instant$/ })).toHaveCount(4);
+  await expect(page.getByRole("button", { name: /Cached · instant$/ })).toHaveCount(4);
+  const panel = page.getByRole("region", { name: "What’s in this data" });
+  await expect(panel.getByRole("term")).toHaveText(["One row", "Main fields", "Answers well", "Can’t answer", "Defaults"]);
+  await expect(panel).toContainText("9,538 rows, a snapshot as of Sep 30, 2026.");
   await expect(page.getByText("Independent project, not affiliated with the World Bank.")).toBeVisible();
   await expect(page.getByRole("link", { name: "CC BY 4.0" })).toHaveAttribute("href", /creativecommons\.org\/licenses\/by\/4\.0/);
   await expect(page.getByRole("link", { name: "Code on GitHub" })).toBeVisible();
@@ -118,6 +121,8 @@ test("clarifying example: instant, no request, nothing run", async ({ page }) =>
   const calls = await mockAsk(page, {});
   await page.goto("/");
   await page.getByRole("button", { name: /Which loans are active\?/ }).click();
+  await expect(page.getByRole("button", { name: /Which loans are active\?/ })).toHaveAttribute("aria-current", "true");
+  await expect(page.locator(".examples [aria-current]")).toHaveCount(1);
   const card = page.getByRole("article");
   await expect(card.getByText("Cached example")).toBeVisible();
   await expect(card.getByRole("heading", { name: "I need a bit more detail" })).toBeVisible();
@@ -126,10 +131,12 @@ test("clarifying example: instant, no request, nothing run", async ({ page }) =>
   expect(calls).toEqual([]);
 
   // Body text size, not the serif hero; column names in monospace; the text itself unchanged.
-  const msg = card.locator(".clarify-msg");
+  const msg = card.locator(".state-body");
   await expect(msg).toHaveText(examples.examples[3].summary);
   await expect(msg).toHaveCSS("font-size", "16px");
-  await expect(msg.locator("code")).toHaveText(["loan_status", "borrowers_obligation_usd"]);
+  const idents = examples.examples[3].summary.match(/[A-Za-z0-9]+(?:_[A-Za-z0-9]+)+/g) ?? [];
+  expect(idents.length).toBeGreaterThan(0);
+  await expect(msg.locator("code")).toHaveText(idents);
   const font = await msg.locator("code").first().evaluate((el) => getComputedStyle(el).fontFamily);
   expect(font).toMatch(/monospace/);
 });
@@ -189,6 +196,8 @@ test("refuse is neutral and shows no SQL", async ({ page }) => {
   const head = page.getByRole("heading", { name: "I can’t answer that from this data" });
   await expect(head).toBeVisible();
   await expect(head).toHaveClass(/neutral/);
+  await expect(page.locator(".state-body")).toHaveCSS("font-size", "16px");
+  await expect(page.getByText("Nothing was run.", { exact: false })).toBeVisible();
   await expect(page.getByText("SQL", { exact: true })).toHaveCount(0);
 });
 

@@ -113,9 +113,9 @@ h1 { font: 600 31px/1.16 var(--serif); letter-spacing: -0.01em; margin: 0 0 12px
 @media (hover: none) { .hint-enter { visibility: hidden; } }
 .problem { margin: 6px 0 0; font-size: 14px; color: var(--critical); min-height: 0; }
 .problem:empty { display: none; }
-.wake { display: flex; align-items: center; gap: 8px; margin: 6px 0 0; font-size: 13px; line-height: 18px; color: var(--ink-2); }
+.wake { display: flex; align-items: flex-start; gap: 8px; margin: 6px 0 0; font-size: 13px; line-height: 18px; color: var(--ink-2); }
 .wake:empty { display: none; }
-.wake-dot { flex: none; width: 6px; height: 6px; border-radius: 50%; background: var(--accent); animation: pulse 1.4s ease-in-out infinite; }
+.wake-dot { flex: none; margin-top: 6px; width: 6px; height: 6px; border-radius: 50%; background: var(--accent); animation: pulse 1.4s ease-in-out infinite; }
 
 /* ---------- section heads ---------- */
 .section-head { font: 600 12px/1 var(--sans); letter-spacing: 0.06em; text-transform: uppercase; color: var(--muted); margin: 0 0 10px; }
@@ -132,7 +132,16 @@ h1 { font: 600 31px/1.16 var(--serif); letter-spacing: -0.01em; margin: 0 0 12px
 }
 @media (hover: hover) { .examples button:hover { background: var(--wash); color: var(--ink); } }  /* no sticky highlight after a tap */
 .examples button:active { background: var(--hairline); }
+.examples button[aria-current="true"] { background: var(--wash); color: var(--ink); }
 .examples .tag { font-size: 12px; color: var(--muted); white-space: nowrap; }
+
+/* ---------- what's in this data ---------- */
+.data-panel { margin: 0 0 40px; }
+.data-panel dl { margin: 0; border-top: 1px solid var(--hairline); padding-top: 4px; font-size: 14px; line-height: 21px; }
+.data-panel dl > div { display: grid; grid-template-columns: 8.5rem 1fr; gap: 2px 16px; padding: 8px 0; }
+.data-panel dt { color: var(--ink); font-weight: 600; }
+.data-panel dd { margin: 0; color: var(--ink-2); max-width: 64ch; text-wrap: pretty; }
+@media (max-width: 559px) { .data-panel dl > div { grid-template-columns: 1fr; } }
 
 /* ---------- card ---------- */
 .result-area { scroll-margin-top: 16px; margin-bottom: 40px; }
@@ -157,9 +166,9 @@ h1 { font: 600 31px/1.16 var(--serif); letter-spacing: -0.01em; margin: 0 0 12px
 .state-head.clarify { color: var(--clarify); }
 .state-head.neutral { color: var(--ink); }
 .state-head.critical { color: var(--critical); }
-.state-msg { font: 400 22px/31px var(--serif); margin: 0 0 14px; max-width: 52ch; text-wrap: pretty; }
-.clarify-msg { font: 400 16px/1.55 var(--sans); margin: 0 0 14px; max-width: 62ch; text-wrap: pretty; overflow-wrap: anywhere; }
-.clarify-msg code { font: 0.875em var(--mono); background: var(--wash); border: 1px solid var(--hairline); border-radius: 4px; padding: 1px 4px; }
+.state-body { font: 400 16px/1.55 var(--sans); margin: 0 0 14px; max-width: 62ch; text-wrap: pretty; overflow-wrap: anywhere; }
+/* Column names inside prose (clarify, refuse, assumptions): display only, the text is unchanged. */
+code.ident { font: 0.875em var(--mono); background: var(--wash); border: 1px solid var(--hairline); border-radius: 4px; padding: 0 4px; }
 .state-help { font-size: 15px; color: var(--ink-2); margin: 0 0 4px; max-width: 62ch; overflow-wrap: anywhere; }
 .btn-quiet {
   display: inline-flex; align-items: center; gap: 8px; margin-top: 14px; min-height: 44px; padding: 0 16px;

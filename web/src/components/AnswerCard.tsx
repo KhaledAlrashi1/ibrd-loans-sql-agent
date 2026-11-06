@@ -15,10 +15,11 @@ import { IconAlert, IconBlock, IconCalendar, IconQuestion, IconSearchOff } from 
 const UNRELIABLE = "I couldn't answer that reliably.";
 const PARTIAL = /\bpartial(ly)?\b/i;
 const IDENT = /([A-Za-z0-9]+(?:_[A-Za-z0-9]+)+)/;  // snake_case tokens, e.g. borrowers_obligation_usd
+const nbsp = (s: string) => s.replace(/ /g, "\u00a0");  // keeps "Nov 6, 2026" on one line
 
 /** Display only: the text is unchanged, column names are set in monospace. */
 function WithCode({ text }: { text: string }) {
-  return <>{text.split(IDENT).map((part, i) => (i % 2 ? <code key={i}>{part}</code> : part))}</>;
+  return <>{text.split(IDENT).map((part, i) => (i % 2 ? <code key={i} className="ident" translate="no">{part}</code> : part))}</>;
 }
 
 export function AnswerCard({ data, computedAt }: { data: Answer; computedAt: string }) {
@@ -35,7 +36,7 @@ function Meta({ data, computedAt }: { data: Answer; computedAt: string }) {
   const pill = { live: "Live", cache: "Cached answer", example: "Cached example" }[data.source];
   const timing = data.source === "live" ? `Answered in ${seconds(data.latency_ms)}`
     : data.source === "cache" ? `${seconds(data.latency_ms)} · first answered in ${seconds(data.answered_ms)}`
-    : `Computed by the live agent on ${longDate(computedAt)} in ${seconds(data.answered_ms)}`;
+    : `Computed by the live agent on ${nbsp(longDate(computedAt))} in\u00a0${seconds(data.answered_ms)}`;
   return (
     <div className="meta">
       <span className={`pill ${data.source}`}>{pill}</span>
@@ -50,7 +51,7 @@ function Body({ data }: { data: Answer }) {
       return (
         <>
           <h2 id="result-heading" className="state-head clarify"><IconQuestion /> I need a bit more detail</h2>
-          <p className="clarify-msg"><WithCode text={data.summary} /></p>
+          <p className="state-body"><WithCode text={data.summary} /></p>
           <p className="state-help">Add that detail to your question above and ask again. Nothing was run.</p>
         </>
       );
@@ -58,7 +59,8 @@ function Body({ data }: { data: Answer }) {
       return (
         <>
           <h2 id="result-heading" className="state-head neutral"><IconBlock /> I can&rsquo;t answer that from this data</h2>
-          <p className="state-msg">{data.summary}</p>
+          <p className="state-body"><WithCode text={data.summary} /></p>
+          <p className="state-help">Nothing was run. Try one of the examples, or ask about IBRD loans and guarantees.</p>
         </>
       );
     case "error":
@@ -150,7 +152,7 @@ function Details({ data, sqlTitle }: { data: Answer; sqlTitle: string }) {
       {data.assumptions.length > 0 && (
         <section className="section" aria-labelledby="assumptions-heading">
           <h3 id="assumptions-heading" className="section-head">Assumptions</h3>
-          <ul className="assumptions">{data.assumptions.map((a) => <li key={a}>{a}</li>)}</ul>
+          <ul className="assumptions">{data.assumptions.map((a) => <li key={a}><WithCode text={a} /></li>)}</ul>
         </section>
       )}
       {data.sql && (
