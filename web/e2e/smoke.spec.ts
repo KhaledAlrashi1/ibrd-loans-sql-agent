@@ -124,6 +124,14 @@ test("clarifying example: instant, no request, nothing run", async ({ page }) =>
   await expect(card.getByText("Nothing was run.")).toBeVisible();
   await expect(card.locator("pre.sql")).toHaveCount(0);
   expect(calls).toEqual([]);
+
+  // Body text size, not the serif hero; column names in monospace; the text itself unchanged.
+  const msg = card.locator(".clarify-msg");
+  await expect(msg).toHaveText(examples.examples[3].summary);
+  await expect(msg).toHaveCSS("font-size", "16px");
+  await expect(msg.locator("code")).toHaveText(["loan_status", "borrowers_obligation_usd"]);
+  const font = await msg.locator("code").first().evaluate((el) => getComputedStyle(el).fontFamily);
+  expect(font).toMatch(/monospace/);
 });
 
 test("line chart x labels never overlap at 390 px", async ({ page }) => {

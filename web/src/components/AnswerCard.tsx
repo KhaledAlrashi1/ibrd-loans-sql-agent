@@ -14,6 +14,12 @@ import { IconAlert, IconBlock, IconCalendar, IconQuestion, IconSearchOff } from 
 
 const UNRELIABLE = "I couldn't answer that reliably.";
 const PARTIAL = /\bpartial(ly)?\b/i;
+const IDENT = /([A-Za-z0-9]+(?:_[A-Za-z0-9]+)+)/;  // snake_case tokens, e.g. borrowers_obligation_usd
+
+/** Display only: the text is unchanged, column names are set in monospace. */
+function WithCode({ text }: { text: string }) {
+  return <>{text.split(IDENT).map((part, i) => (i % 2 ? <code key={i}>{part}</code> : part))}</>;
+}
 
 export function AnswerCard({ data, computedAt }: { data: Answer; computedAt: string }) {
   return (
@@ -44,7 +50,7 @@ function Body({ data }: { data: Answer }) {
       return (
         <>
           <h2 id="result-heading" className="state-head clarify"><IconQuestion /> I need a bit more detail</h2>
-          <p className="state-msg">{data.summary}</p>
+          <p className="clarify-msg"><WithCode text={data.summary} /></p>
           <p className="state-help">Add that detail to your question above and ask again. Nothing was run.</p>
         </>
       );

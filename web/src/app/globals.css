@@ -158,6 +158,8 @@ h1 { font: 600 31px/1.16 var(--serif); letter-spacing: -0.01em; margin: 0 0 12px
 .state-head.neutral { color: var(--ink); }
 .state-head.critical { color: var(--critical); }
 .state-msg { font: 400 22px/31px var(--serif); margin: 0 0 14px; max-width: 52ch; text-wrap: pretty; }
+.clarify-msg { font: 400 16px/1.55 var(--sans); margin: 0 0 14px; max-width: 62ch; text-wrap: pretty; overflow-wrap: anywhere; }
+.clarify-msg code { font: 0.875em var(--mono); background: var(--wash); border: 1px solid var(--hairline); border-radius: 4px; padding: 1px 4px; }
 .state-help { font-size: 15px; color: var(--ink-2); margin: 0 0 4px; max-width: 62ch; overflow-wrap: anywhere; }
 .btn-quiet {
   display: inline-flex; align-items: center; gap: 8px; margin-top: 14px; min-height: 44px; padding: 0 16px;
