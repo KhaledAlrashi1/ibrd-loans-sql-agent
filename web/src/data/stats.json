@@ -1,0 +1,45 @@
+{
+ "end_of_period": "2026-09-30",
+ "loans": 9425,
+ "outstanding_usd": 296720590992.11,
+ "approved_usd": 984741850915.1902,
+ "first_fy": 1947,
+ "countries": 143,
+ "outstanding_by_region": [
+  {
+   "region": "LATIN AMERICA AND CARIBBEAN",
+   "label": "Latin America & Caribbean",
+   "usd": 86600995156.95001
+  },
+  {
+   "region": "EUROPE AND CENTRAL ASIA",
+   "label": "Europe & Central Asia",
+   "usd": 65404966862.8
+  },
+  {
+   "region": "EAST ASIA AND PACIFIC",
+   "label": "East Asia & Pacific",
+   "usd": 56355533852.369995
+  },
+  {
+   "region": "MID EAST,NORTH AFRICA,AFG,PAK",
+   "label": "Middle East, N. Africa, Afg. & Pak.",
+   "usd": 43639668797.85997
+  },
+  {
+   "region": "SOUTH ASIA",
+   "label": "South Asia",
+   "usd": 24661135883.57
+  },
+  {
+   "region": "EASTERN AND SOUTHERN AFRICA",
+   "label": "Eastern & Southern Africa",
+   "usd": 16321499179.979994
+  },
+  {
+   "region": "WESTERN AND CENTRAL AFRICA",
+   "label": "Western & Central Africa",
+   "usd": 3736791258.5800004
+  }
+ ]
+}

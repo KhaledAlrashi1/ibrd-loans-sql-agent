@@ -50,3 +50,14 @@ export type ExamplesFile = {
 export function isAnswer(r: AskResponse): r is Answer {
   return r.status === "answer" || r.status === "empty" || r.status === "clarify" || r.status === "refuse" || r.status === "error";
 }
+
+/** web/src/data/stats.json, written by scripts/build_stats.py. Loans only, raw US$. */
+export type Stats = {
+  end_of_period: string;
+  loans: number;
+  outstanding_usd: number;
+  approved_usd: number;
+  first_fy: number;
+  countries: number;
+  outstanding_by_region: { region: string; label: string; usd: number }[];
+};

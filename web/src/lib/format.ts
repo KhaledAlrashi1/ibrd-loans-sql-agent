@@ -30,6 +30,11 @@ export function exactValue(v: Value, unit: Unit, isYear: boolean): string {
 const YEAR_NAME = /(^|_)(fy|cy|year|fiscal_year|calendar_year)$/i;
 export const isYearColumn = (name: string) => YEAR_NAME.test(name);
 
+const usdCompact = new Intl.NumberFormat("en-US", { style: "currency", currency: "USD", notation: "compact", maximumFractionDigits: 1 });
+
+/** Headline figures: $296.7B. */
+export const compactUsd = (v: number) => usdCompact.format(v);
+
 /** Compact axis ticks: $10B, $250M, 40%, 1.2K. */
 export function tick(v: number, unit: Unit): string {
   if (unit === "share") return `${Math.round(v * 100)}%`;

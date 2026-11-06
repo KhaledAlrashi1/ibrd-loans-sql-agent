@@ -1,7 +1,7 @@
 "use client";
 
 // Hairline rows, numbers right-aligned in tabular figures, sticky header, first column sticky while the
-// table scrolls sideways inside the card. "Show exact values" swaps the rounded text for the raw values.
+// table scrolls sideways inside the card. "Exact values" swaps the rounded text for the raw values.
 
 import { useState } from "react";
 import type { Answer } from "@/lib/types";
@@ -25,7 +25,7 @@ export function ResultTable({ data }: { data: Answer }) {
         <div className="table-tools">
           <button type="button" role="switch" aria-checked={exact} className="switch" onClick={() => setExact((v) => !v)}>
             <span className="switch-track" aria-hidden="true"><span className="switch-thumb" /></span>
-            Show exact values
+            Exact values
           </button>
         </div>
       )}
@@ -58,7 +58,7 @@ export function ResultTable({ data }: { data: Answer }) {
         </table>
       </div>
       {data.truncated && (
-        <p className="note">Showing the first {data.row_limit.toLocaleString("en-US")} rows. Ask a narrower question to see the rest.</p>
+        <p className="note">First {data.row_limit.toLocaleString("en-US")} rows only. Narrow the question to see the rest.</p>
       )}
     </div>
   );
