@@ -1,0 +1,9 @@
+# Direct dependencies of the v2 API service (server/). Same pins as the root requirements.in, minus
+# streamlit (and so pyarrow), plus fastapi. Compiled into server/requirements.txt; see the command there.
+altair==6.3.0        # imported by src/ui/display.py
+anthropic==2.3.0
+duckdb==2.0.0
+fastapi==0.162.0
+pandas==3.1.0        # imported by src/ui/display.py
+pyyaml==6.0.3
+sqlglot==30.27.0

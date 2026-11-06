@@ -1,0 +1,13 @@
+# Never upload secrets or local environments to Vercel.
+.streamlit/
+.env*
+.venv/
+**/node_modules/
+**/__pycache__/
+**/.next/
+.vercel/
+.git/
+eval/results/
+docs/
+web/test-results/
+web/playwright-report/

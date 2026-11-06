@@ -1,0 +1,362 @@
+{
+ "computed_at": "2026-11-03T16:37:26+00:00",
+ "git_commit": "7eb04e8",
+ "model": "claude-sonnet-5-5",
+ "effort": "high",
+ "cache_version": "44a1d6317276",
+ "dataset": {
+  "name": "IBRD Statement of Loans and Guarantees - Latest Available Snapshot",
+  "id": "DS00047",
+  "source_url": "https://financesone.worldbank.org/ibrd-statement-of-loans-and-guarantees-latest-available-snapshot/DS00047",
+  "end_of_period": "2026-09-30",
+  "rows": 9538
+ },
+ "examples": [
+  {
+   "status": "answer",
+   "question": "Which 10 countries have the most undisbursed IBRD loans?",
+   "summary": "Top 10 countries by total undisbursed amount across their IBRD loans.",
+   "columns": [
+    {
+     "name": "country",
+     "label": "Country / economy",
+     "unit": "plain"
+    },
+    {
+     "name": "undisbursed_usd",
+     "label": "Undisbursed (USD)",
+     "unit": "usd"
+    }
+   ],
+   "rows": [
+    [
+     "Turkiye",
+     14851719396.98
+    ],
+    [
+     "India",
+     12981866606.320002
+    ],
+    [
+     "Brazil",
+     11228931299.77
+    ],
+    [
+     "Indonesia",
+     6203613206.320001
+    ],
+    [
+     "Philippines",
+     6079643536.24
+    ],
+    [
+     "China",
+     4446790594.799999
+    ],
+    [
+     "Morocco",
+     4151783521.0499997
+    ],
+    [
+     "Angola",
+     2989358422.21
+    ],
+    [
+     "Peru",
+     2405600750.19
+    ],
+    [
+     "Pakistan",
+     2393247690.01
+    ]
+   ],
+   "display_rows": [
+    [
+     "Turkiye",
+     "$14.85B"
+    ],
+    [
+     "India",
+     "$12.98B"
+    ],
+    [
+     "Brazil",
+     "$11.23B"
+    ],
+    [
+     "Indonesia",
+     "$6.20B"
+    ],
+    [
+     "Philippines",
+     "$6.08B"
+    ],
+    [
+     "China",
+     "$4.45B"
+    ],
+    [
+     "Morocco",
+     "$4.15B"
+    ],
+    [
+     "Angola",
+     "$2.99B"
+    ],
+    [
+     "Peru",
+     "$2.41B"
+    ],
+    [
+     "Pakistan",
+     "$2.39B"
+    ]
+   ],
+   "chart": {
+    "kind": "bar",
+    "x": "country",
+    "y": "undisbursed_usd"
+   },
+   "assumptions": [
+    "'Most undisbursed' is ranked by total undisbursed amount (undisbursed_amount_usd), not by number of loans.",
+    "Guarantees excluded (is_guarantee = FALSE).",
+    "Regional entries (6R, 3E, 3S, 3W) excluded from the country ranking (is_regional_entry = FALSE).",
+    "Undisbursed amounts are US$ at End of Period exchange rates (snapshot 2026-09-30).",
+    "All loan statuses included; amounts are summed per country."
+   ],
+   "sql": "SELECT country, SUM(undisbursed_amount_usd) AS undisbursed_usd\nFROM ibrd_loans\nWHERE is_guarantee = FALSE AND is_regional_entry = FALSE\nGROUP BY country\nORDER BY undisbursed_usd DESC\nLIMIT 10",
+   "truncated": false,
+   "row_limit": 1000,
+   "answered_ms": 4360,
+   "attempts": 1,
+   "data_as_of": "2026-09-30",
+   "source": "example",
+   "latency_ms": 4360,
+   "retry_after_s": null
+  },
+  {
+   "status": "answer",
+   "question": "Which 5 countries owe the most to the IBRD?",
+   "summary": "Top 5 countries by total outstanding borrower's obligation on IBRD loans.",
+   "columns": [
+    {
+     "name": "country",
+     "label": "Country / economy",
+     "unit": "plain"
+    },
+    {
+     "name": "total_owed_usd",
+     "label": "Total owed (USD)",
+     "unit": "usd"
+    }
+   ],
+   "rows": [
+    [
+     "India",
+     23573624318.849995
+    ],
+    [
+     "Indonesia",
+     22822215638.15
+    ],
+    [
+     "Ukraine",
+     19477426850.7
+    ],
+    [
+     "Philippines",
+     17153023419.73
+    ],
+    [
+     "Colombia",
+     16575487974.05
+    ]
+   ],
+   "display_rows": [
+    [
+     "India",
+     "$23.57B"
+    ],
+    [
+     "Indonesia",
+     "$22.82B"
+    ],
+    [
+     "Ukraine",
+     "$19.48B"
+    ],
+    [
+     "Philippines",
+     "$17.15B"
+    ],
+    [
+     "Colombia",
+     "$16.58B"
+    ]
+   ],
+   "chart": {
+    "kind": "bar",
+    "x": "country",
+    "y": "total_owed_usd"
+   },
+   "assumptions": [
+    "'Owe' = outstanding balance = borrowers_obligation_usd, summed per country.",
+    "Guarantees excluded (is_guarantee = FALSE).",
+    "Regional entries (6R, 3E, 3S, 3W) excluded from the country ranking.",
+    "Amounts are US$ at historical exchange rates; snapshot as of 2026-09-30.",
+    "Ranked by total amount owed, not number of loans."
+   ],
+   "sql": "SELECT country, SUM(borrowers_obligation_usd) AS total_owed_usd\nFROM ibrd_loans\nWHERE is_guarantee = FALSE AND is_regional_entry = FALSE\nGROUP BY country\nORDER BY total_owed_usd DESC\nLIMIT 5",
+   "truncated": false,
+   "row_limit": 1000,
+   "answered_ms": 3980,
+   "attempts": 1,
+   "data_as_of": "2026-09-30",
+   "source": "example",
+   "latency_ms": 3980,
+   "retry_after_s": null
+  },
+  {
+   "status": "answer",
+   "question": "What was the total amount of IBRD loans approved in each fiscal year from 2020 to 2025?",
+   "summary": "Total original principal approved on IBRD loans (excluding guarantees) for each fiscal year FY2020–FY2025.",
+   "columns": [
+    {
+     "name": "fiscal_year",
+     "label": "Fiscal year",
+     "unit": "plain"
+    },
+    {
+     "name": "total_approved_usd",
+     "label": "Total approved (USD)",
+     "unit": "usd"
+    }
+   ],
+   "rows": [
+    [
+     2020,
+     26863414500.0
+    ],
+    [
+     2021,
+     29842550000.0
+    ],
+    [
+     2022,
+     32444699576.0
+    ],
+    [
+     2023,
+     38404334500.0
+    ],
+    [
+     2024,
+     36621591620.0
+    ],
+    [
+     2025,
+     39929105434.0
+    ]
+   ],
+   "display_rows": [
+    [
+     "2020",
+     "$26.86B"
+    ],
+    [
+     "2021",
+     "$29.84B"
+    ],
+    [
+     "2022",
+     "$32.44B"
+    ],
+    [
+     "2023",
+     "$38.40B"
+    ],
+    [
+     "2024",
+     "$36.62B"
+    ],
+    [
+     "2025",
+     "$39.93B"
+    ]
+   ],
+   "chart": {
+    "kind": "line",
+    "x": "fiscal_year",
+    "y": "total_approved_usd"
+   },
+   "assumptions": [
+    "Fiscal year = board_approval_fy (Jul-Jun; FY2024 = Jul 2023-Jun 2024), FY2020 to FY2025 inclusive.",
+    "Amount approved = original_principal_amount_usd, in US$ at historical exchange rates.",
+    "Guarantees excluded (is_guarantee = FALSE).",
+    "Regional entries are not excluded because this is an overall total, not a country ranking.",
+    "The table is a snapshot of loans on the books, so loans that were fully repaid and removed from it are not counted. Totals may be lower than all-time approvals."
+   ],
+   "sql": "SELECT board_approval_fy AS fiscal_year, SUM(original_principal_amount_usd) AS total_approved_usd\nFROM ibrd_loans\nWHERE is_guarantee = FALSE AND board_approval_fy BETWEEN 2020 AND 2025\nGROUP BY board_approval_fy\nORDER BY board_approval_fy",
+   "truncated": false,
+   "row_limit": 1000,
+   "answered_ms": 4940,
+   "attempts": 1,
+   "data_as_of": "2026-09-30",
+   "source": "example",
+   "latency_ms": 4940,
+   "retry_after_s": null
+  },
+  {
+   "status": "answer",
+   "question": "What is the average interest rate on IBRD loans?",
+   "summary": "Unweighted average interest rate across IBRD loans that report a single positive rate (excludes guarantees and multiple-rate loans such as FSL).",
+   "columns": [
+    {
+     "name": "avg_interest_rate",
+     "label": "Average interest rate",
+     "unit": "plain"
+    },
+    {
+     "name": "loans_included",
+     "label": "Loans included",
+     "unit": "plain"
+    }
+   ],
+   "rows": [
+    [
+     5.880697376568286,
+     6137
+    ]
+   ],
+   "display_rows": [
+    [
+     "5.88",
+     "6,137"
+    ]
+   ],
+   "chart": null,
+   "assumptions": [
+    "Guarantees excluded (is_guarantee = FALSE).",
+    "Only loans with interest_rate > 0 are averaged, because 0 means multiple rates (all FSL, some SCL and others), not 0%; NULL rates (guarantees) are also excluded.",
+    "This is an unweighted average over loans with a single reported rate, mostly older loans; multiple-rate loans (all FSL, some SCL) are not included.",
+    "Interest rate units are not documented; values look like percent.",
+    "Regional entries are included since this is an overall figure, not a country ranking."
+   ],
+   "sql": "SELECT AVG(interest_rate) AS avg_interest_rate, COUNT(*) AS loans_included\nFROM ibrd_loans\nWHERE is_guarantee = FALSE AND interest_rate > 0",
+   "truncated": false,
+   "row_limit": 1000,
+   "answered_ms": 3560,
+   "attempts": 1,
+   "data_as_of": "2026-09-30",
+   "source": "example",
+   "latency_ms": 3560,
+   "retry_after_s": null
+  }
+ ],
+ "replaced": {
+  "example": 4,
+  "question": "What is the average interest rate on IBRD loans?",
+  "at": "2026-11-03T16:37:55+00:00",
+  "git_commit": "7eb04e8"
+ }
+}
