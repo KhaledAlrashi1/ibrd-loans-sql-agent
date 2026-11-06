@@ -136,8 +136,8 @@
   },
   {
    "status": "answer",
-   "question": "Which Middle East and North Africa countries owe the most to the IBRD?",
-   "summary": "Top countries in the Middle East and North Africa region by total outstanding balance owed to IBRD.",
+   "question": "Which 5 Middle East and North Africa countries owe the most to the IBRD?",
+   "summary": "Top 5 countries in the MID EAST,NORTH AFRICA,AFG,PAK region by total outstanding obligation to the IBRD.",
    "columns": [
     {
      "name": "country",
@@ -170,26 +170,6 @@
     [
      "Pakistan",
      3196340951.8599997
-    ],
-    [
-     "Iraq",
-     2411041667.0799994
-    ],
-    [
-     "Lebanon",
-     1171993433.6299999
-    ],
-    [
-     "Iran, Islamic Republic of",
-     111899898.77
-    ],
-    [
-     "Israel",
-     0.0
-    ],
-    [
-     "Malta",
-     0.0
     ]
    ],
    "display_rows": [
@@ -212,26 +192,6 @@
     [
      "Pakistan",
      "$3.20B"
-    ],
-    [
-     "Iraq",
-     "$2.41B"
-    ],
-    [
-     "Lebanon",
-     "$1.17B"
-    ],
-    [
-     "Iran, Islamic Republic of",
-     "$111.9M"
-    ],
-    [
-     "Israel",
-     "$0.00"
-    ],
-    [
-     "Malta",
-     "$0.00"
     ]
    ],
    "chart": {
@@ -241,19 +201,19 @@
    },
    "assumptions": [
     "'Middle East and North Africa' is mapped to the region value 'MID EAST,NORTH AFRICA,AFG,PAK', which also includes Afghanistan and Pakistan countries as grouped by the World Bank (region is the current administrative region).",
-    "Owed = outstanding balance = borrowers_obligation_usd, summed per country; this column is revalued at End of Period exchange rates (due_to_ibrd_usd + exchange_adjustment_usd), not historical rates.",
+    "'Owe' = outstanding balance = borrowers_obligation_usd (due to IBRD plus exchange adjustment), summed per country across all loans; US$ at End of Period exchange rates (revalued, not historical).",
     "Guarantees excluded (is_guarantee = FALSE).",
-    "Regional entries excluded from the country ranking (is_regional_entry = FALSE).",
-    "Ranked by total amount owed, showing the top 10 countries since no number was specified."
+    "Regional entries excluded (is_regional_entry = FALSE) as this is a country ranking.",
+    "Ranked by total amount owed, not number of loans."
    ],
-   "sql": "SELECT country, SUM(borrowers_obligation_usd) AS owed_usd\nFROM ibrd_loans\nWHERE region = 'MID EAST,NORTH AFRICA,AFG,PAK' AND is_guarantee = FALSE AND is_regional_entry = FALSE\nGROUP BY country\nORDER BY owed_usd DESC\nLIMIT 10",
+   "sql": "SELECT country, SUM(borrowers_obligation_usd) AS owed_usd\nFROM ibrd_loans\nWHERE region = 'MID EAST,NORTH AFRICA,AFG,PAK' AND is_guarantee = FALSE AND is_regional_entry = FALSE\nGROUP BY country\nORDER BY owed_usd DESC\nLIMIT 5",
    "truncated": false,
    "row_limit": 1000,
-   "answered_ms": 4020,
+   "answered_ms": 5720,
    "attempts": 1,
    "data_as_of": "2026-09-30",
    "source": "example",
-   "latency_ms": 4020,
+   "latency_ms": 5720,
    "retry_after_s": null
   },
   {
@@ -369,8 +329,8 @@
  ],
  "replaced": {
   "example": 2,
-  "question": "Which Middle East and North Africa countries owe the most to the IBRD?",
-  "at": "2026-11-06T11:36:22+00:00",
-  "git_commit": "e75b9e7"
+  "question": "Which 5 Middle East and North Africa countries owe the most to the IBRD?",
+  "at": "2026-11-06T11:59:55+00:00",
+  "git_commit": "1598aa7"
  }
 }
