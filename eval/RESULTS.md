@@ -77,3 +77,94 @@ the v2 API imports.
 | dev (post-hardening) | `results/20261103-191552_dev.json` | 20 | 0 | 0 | 3/3 | 3.3 s / 4.3 s | $0.18 |
 
 Same outcome as the three Phase 4 dev runs. Heldout was not run.
+
+## 2026-11-06: KI-1 fix and caveat-scoring change
+
+### Scorer change (no gold values changed)
+
+The caveat check used to test only that required terms appear (`must_mention`). D15 passed with a wrong
+caveat ("the count may be lower than 44" next to an answer of 44; see `docs/known-issues.md`, KI-1). Two
+deterministic checks were added to `src/agent/scoring.py`. Like `must_mention`, they are **reported only and
+never change the outcome**:
+
+1. **`must_not_mention`** in `questions.yaml`: any listed term in the message or assumptions fails the caveat.
+   D15: `["lower than", "fewer than", "may be lower"]`.
+2. **Comparison-claim check**, on every answer whose result is a single number: phrases such as
+   "lower / fewer / less than X" fail when the result is ≥ X, and "higher / more / greater than X" fail when
+   the result is ≤ X.
+
+**Earlier runs under the new scorer** (`scripts/rescore.py` on all saved dev runs; heldout not read):
+
+| Run | File | Outcomes (c / a / w) | Caveats before → after |
+|---|---|---|---|
+| Phase 3 first run | `results/20261101-171538_dev.json` | 19 / 1 / 0 (unchanged) | not scored → 3/3 |
+| dev 1 | `results/20261101-173532_dev.json` | 20 / 0 / 0 (unchanged) | 3/3 → 3/3 |
+| dev 2 | `results/20261101-173649_dev.json` | 20 / 0 / 0 (unchanged) | 3/3 → 3/3 |
+| dev 3 | `results/20261101-173749_dev.json` | 20 / 0 / 0 (unchanged) | 3/3 → **2/3** |
+| post-hardening | `results/20261103-191552_dev.json` | 20 / 0 / 0 (unchanged) | 3/3 → 3/3 |
+
+**Yes, one earlier run would have failed D15:** dev 3 (Nov 1). Both checks catch it: `must_not_mention` finds
+"lower than" and "may be lower", and the claim "lower than 44" is contradicted by the result of 44. No other
+earlier answer triggers the comparison-claim check (11-13 single-number answers per run).
+
+### Dev run after the KI-1 fix
+
+KI-1 fix: the dictionary now says FY2027 has 44 loans and 0 guarantees and that a partial-year figure can
+only be the same or higher for the full year; the prompt's Defaults say assumptions describe what the SQL
+does and don't predict how the result compares to a number.
+
+- Data: snapshot End of Period 2026-09-30. Model: `claude-sonnet-5-5`, effort `high`.
+- Before the run: `scripts/verify_gold.py` all gold answers match pandas.
+
+| Run | File | Correct | Abstained | Wrong | Caveats | Comparison claims contradicted | Latency median / max | Cost |
+|---|---|---|---|---|---|---|---|---|
+| dev (KI-1) | `results/20261106-140841_dev.json` | 20 | 0 | 0 | 3/3 | 0 of 13 | 3.2 s / 7.1 s | $0.18 |
+
+D15 now answers 44 with "FY2027 is partial in this snapshot: it only covers 2026-07-01 to 2026-09-30, so the
+full-year count could be higher." and "Guarantees excluded (is_guarantee = FALSE); FY2027 has no guarantees
+anyway." Heldout was not run.
+
+### Headline caveat count now includes both new checks
+
+Until now the headline "caveats passed/checked" counted only `must_mention` and `must_not_mention`; a
+contradicted comparison claim was a separate report line. Now one function, `caveat_ok` in
+`src/agent/scoring.py`, gives each answer one caveat result, used by both `run_eval.py` and `rescore.py`:
+
+- it fails when a `must_mention` term is missing, a `must_not_mention` term is found, **or** a comparison
+  claim is contradicted by the single-number result;
+- a contradicted claim on a question with no caveat terms also counts, as a checked answer that fails
+  (so the denominator can grow above 3).
+
+Outcomes (correct / abstained / wrong) still never change. No gold values changed.
+
+**All saved dev runs re-scored** (`scripts/rescore.py`, no model calls; heldout not read):
+
+| Run | File | Outcomes (c / a / w) | Caveats (headline) |
+|---|---|---|---|
+| Phase 3 first run | `results/20261101-171538_dev.json` | 19 / 1 / 0 | 3/3 |
+| dev 1 | `results/20261101-173532_dev.json` | 20 / 0 / 0 | 3/3 |
+| dev 2 | `results/20261101-173649_dev.json` | 20 / 0 / 0 | 3/3 |
+| dev 3 | `results/20261101-173749_dev.json` | 20 / 0 / 0 | **2/3** (D15: `must_not_mention` and the claim "lower than 44") |
+| post-hardening | `results/20261103-191552_dev.json` | 20 / 0 / 0 | 3/3 |
+| dev (KI-1) | `results/20261106-140841_dev.json` | 20 / 0 / 0 | 3/3 |
+
+Same numbers as under the previous counting: the only contradicted claim in any run is D15 in dev 3, which
+already failed `must_not_mention`. The `summary.caveats` saved inside older result files uses the counting
+of its day; `rescore.py` is the current number.
+
+## 2026-11-06: Per-column US$ basis and Terminated-loan note (commit `e75b9e7`)
+
+Khaled's decisions on the exchange-rate basis and on Terminated loans changed the dictionary and one prompt
+line, so the system prompt changed. One dev run on that prompt. Heldout was not run.
+
+- `data_dictionary.yaml`: every amount column has a `usd_basis` taken from the official metadata
+  (End of Period for undisbursed; historical for disbursed and repaid; due to IBRD conditional, as the metadata
+  says; borrower's obligation revalued; cancelled, the three 3rd-party columns and loans held "Not documented").
+  The rule `historical_usd` is replaced by `usd_basis`; new rule `terminated_zero_principal`.
+- Model: `claude-sonnet-5-5`, effort `high`. Data: snapshot End of Period 2026-09-30.
+
+| Run | File | Correct | Abstained | Wrong | Caveats | Latency median / max | Cost |
+|---|---|---|---|---|---|---|---|
+| dev (usd_basis) | `results/20261106-143430_dev.json` | 20 | 0 | 0 | 3/3 | 3.2 s / 5.0 s | $0.15 |
+
+0 of 11 single-number answers contradict their result.

@@ -4,7 +4,7 @@ Issues found and recorded, not yet fixed. Each one says what was seen, why, and 
 
 ## KI-1. FY2027 caveat: "may be lower than 44" next to an answer of 44
 
-**Status:** open. Fix goes in after v2 merges, together with a dev eval rerun. `src/agent` is not changed on `v2`.
+**Status:** fixed on branch `ki-1` (Nov 6, 2026): the dictionary and prompt edits below, plus both scoring checks. Dev rerun 20/20 with a correct D15 caveat (`eval/RESULTS.md`). Examples regenerated; example 4 is now "Which loans are active?" (clarify).
 
 **Question:** "How many IBRD loans were approved in fiscal year 2027?" (eval D15, and the original cached example 4)
 

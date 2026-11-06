@@ -1,4 +1,5 @@
 import { Ask } from "@/components/Ask";
+import { DataPanel } from "@/components/DataPanel";
 import { ThemeToggle } from "@/components/ThemeToggle";
 import { longDate } from "@/lib/format";
 import type { ExamplesFile } from "@/lib/types";
@@ -28,6 +29,7 @@ export default function Home() {
 
       <main>
         <Ask examples={examples} />
+        <DataPanel dataset={ds} />
       </main>
 
       <footer className="foot">

@@ -21,12 +21,15 @@ def test_examples_match_the_current_prompt_and_payload_rules():
     assert load()["cache_version"] == contract.cache_version()
 
 
-def test_examples_are_complete_answers():
+def test_examples_are_complete_answers_or_clarifying_questions():
     data = load()
     assert len(data["examples"]) == 4
     for e in data["examples"]:
-        assert set(e) == PAYLOAD_KEYS
-        assert e["status"] == "answer" and e["source"] == "example" and e["rows"] and e["sql"]
+        assert set(e) == PAYLOAD_KEYS and e["source"] == "example"
+        if e["status"] == "clarify":  # nothing was run
+            assert e["summary"] and not e["rows"] and not e["sql"]
+        else:
+            assert e["status"] == "answer" and e["rows"] and e["sql"]
         assert len(e["rows"]) == len(e["display_rows"])
 
 

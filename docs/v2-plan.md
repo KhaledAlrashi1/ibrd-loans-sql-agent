@@ -277,7 +277,7 @@ The rules come from `display.format_value`, computed in Python so both UIs agree
 | Clarify | Ochre "I need a bit more detail" heading with icon, the question in serif, "Add that detail to your question above and ask again. Nothing was run." The original question stays in the input. |
 | Refuse | **Neutral ink**, not red (refusing is correct behaviour): "I can't answer that from this data" + the agent's reason, which says what it *can* answer |
 | Error | Critical icon + "I couldn't answer that reliably" + reason; "SQL attempted" collapsed |
-| Limited | Neutral: "You've asked a lot of questions in a short time. Try again in 40 s." (countdown). Daily cap: "Demo limit reached for today. The four examples still work." |
+| Limited | Neutral: "Live questions from your network are limited to 20 per hour." + "Try again in 25 min. The examples and repeated questions still work." (countdown). Daily cap: "This demo has reached today's limit of 150 live questions." + "Live questions resume at midnight UTC. The examples and repeated questions still work." (changed Nov 6) |
 | Invalid | Inline under the input, no card, no request |
 | Unavailable / offline | "Demo is temporarily unavailable" / "Couldn't reach the server", plus Retry |
 
@@ -345,7 +345,7 @@ All items must pass. Otherwise **no-go: Streamlit stays the public demo** and v2
 | 1 | Example: "Which 10 countries have the most undisbursed IBRD loans?" | Turkiye first, **$14.85B**, labelled "Cached example" |
 | 2 | Example: "Which 5 countries owe the most to the IBRD?" | India first, **$23.57B** |
 | 3 | Example: fiscal years 2020–2025 | FY2020 = **$26.86B**, line chart |
-| 4 | Example: "How many IBRD loans were approved in fiscal year 2027?" | **44**, hero number, partial-year caveat visible |
+| 4 | Example: "Which loans are active?" | Clarify state, labelled "Cached example", no request |
 | 5 | Live: "Which loans are active?" | Clarify state |
 | 6 | Live: "Delete all rows from the loans table" | Refuse state, no SQL |
 | 7 | Live: "What's the weather in Kuwait?" | Refuse state |

@@ -123,7 +123,7 @@ export function Ask({ examples }: { examples: ExamplesFile }) {
     run.current++;  // cancels a live question still in flight
     setText(e.question);
     setProblem(null);
-    show({ kind: "answer", data: e }, "answer");
+    show({ kind: "answer", data: e }, e.status);
     reveal();
   }
 
@@ -142,7 +142,7 @@ export function Ask({ examples }: { examples: ExamplesFile }) {
         <label htmlFor="q" className="sr-only">Your question about IBRD loans</label>
         <div className="ask-row">
           <input ref={input} id="q" name="q" type="text" autoComplete="off" spellCheck enterKeyHint="send"
-            placeholder="e.g. How much does Chile owe the IBRD?" value={text}
+            placeholder="e.g. What does Chile owe?" value={text}
             aria-invalid={problem ? true : undefined} aria-describedby="q-hint q-problem"
             onChange={(e) => { setText(e.target.value); if (problem) setProblem(null); }} />
           <button className="btn" type="submit" disabled={loading} aria-disabled={loading}>
@@ -157,7 +157,7 @@ export function Ask({ examples }: { examples: ExamplesFile }) {
         </div>
         <p id="q-problem" className="problem" role="alert">{problem}</p>
         <p className="wake" role="status">
-          {server === "waking" && <><span className="wake-dot" aria-hidden="true" />Waking up the server (~15 s). The examples below work now.</>}
+          {server === "waking" && <><span className="wake-dot" aria-hidden="true" /><span>Waking up the server (~15&nbsp;s). The examples below work now.</span></>}
         </p>
       </form>
 
@@ -166,9 +166,10 @@ export function Ask({ examples }: { examples: ExamplesFile }) {
         <ul className="examples">
           {examples.examples.map((e) => (
             <li key={e.question}>
-              <button type="button" onClick={() => showExample(e)}>
+              <button type="button" onClick={() => showExample(e)}
+                aria-current={view.kind === "answer" && view.data === e ? "true" : undefined}>
                 <span>{e.question}</span>
-                <span className="tag">Instant</span>
+                <span className="tag">Cached · instant</span>
               </button>
             </li>
           ))}

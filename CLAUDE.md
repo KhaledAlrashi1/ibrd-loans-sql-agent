@@ -47,7 +47,7 @@ docs/                          demo GIF, screenshots
 ## Data facts (verified Oct 31, 2026)
 - Source: World Bank Finances One, "IBRD Statement of Loans and Guarantees – Latest Available Snapshot" (DS00047). License CC BY 4.0.
 - Snapshot: **End of Period = 09/30/2026**, 9,538 rows × 35 columns. One row per Loan Number.
-- Amounts are in **US$, at historical exchange rates**.
+- Amounts are in **US$**; the exchange-rate basis differs by column (`usd_basis` in `data_dictionary.yaml`): undisbursed at End of Period rates, borrower's obligation revalued, several columns not documented.
 - Table name in DuckDB: `ibrd_loans`. Columns renamed to snake_case; the original→new name mapping lives in `data_dictionary.yaml`.
 - **Guarantees are mixed in:** Loan Numbers starting `IBRDB` or `IBRDG` are guarantees (official rule). Derived column `is_guarantee`. Loan questions exclude guarantees by default, and the answer says so.
 - **Years:** World Bank fiscal year runs Jul 1 – Jun 30 (FY2024 = Jul 2023–Jun 2024). Default "year" = fiscal year (`board_approval_fy`), and the answer says so.

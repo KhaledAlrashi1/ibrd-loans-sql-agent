@@ -34,7 +34,7 @@ function Limited({ notice }: { notice: Notice }) {
     <article className="card result" aria-labelledby="result-heading">
       <h2 id="result-heading" className="state-head neutral"><IconClock /> {notice.message}</h2>
       {notice.scope === "daily" ? (
-        <p className="state-help">The limit resets at midnight UTC. Cached answers keep working.</p>
+        <p className="state-help">Live questions resume at midnight UTC. The examples and repeated questions still work.</p>
       ) : left > 0 ? (
         <p className="state-help">Try again in <span className="tabular">{waitText(left)}</span>. The examples and repeated questions still work.</p>
       ) : (

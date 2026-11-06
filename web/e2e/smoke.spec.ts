@@ -37,7 +37,10 @@ test("idle page: title, examples, attribution, warm-up ping", async ({ page }) =
   await page.goto("/");
   await health;
   await expect(page.getByRole("heading", { level: 1 })).toHaveText("Ask the IBRD loan book");
-  await expect(page.getByRole("button", { name: /Instant$/ })).toHaveCount(4);
+  await expect(page.getByRole("button", { name: /Cached · instant$/ })).toHaveCount(4);
+  const panel = page.getByRole("region", { name: "What’s in this data" });
+  await expect(panel.getByRole("term")).toHaveText(["One row", "Main fields", "Answers well", "Can’t answer", "Defaults"]);
+  await expect(panel).toContainText("9,538 rows, a snapshot as of Sep 30, 2026.");
   await expect(page.getByText("Independent project, not affiliated with the World Bank.")).toBeVisible();
   await expect(page.getByRole("link", { name: "CC BY 4.0" })).toHaveAttribute("href", /creativecommons\.org\/licenses\/by\/4\.0/);
   await expect(page.getByRole("link", { name: "Code on GitHub" })).toBeVisible();
@@ -114,6 +117,30 @@ test("line chart example", async ({ page }) => {
   expect(fiscalYears.display_rows[0][1]).toBe("$26.86B");
 });
 
+test("clarifying example: instant, no request, nothing run", async ({ page }) => {
+  const calls = await mockAsk(page, {});
+  await page.goto("/");
+  await page.getByRole("button", { name: /Which loans are active\?/ }).click();
+  await expect(page.getByRole("button", { name: /Which loans are active\?/ })).toHaveAttribute("aria-current", "true");
+  await expect(page.locator(".examples [aria-current]")).toHaveCount(1);
+  const card = page.getByRole("article");
+  await expect(card.getByText("Cached example")).toBeVisible();
+  await expect(card.getByRole("heading", { name: "I need a bit more detail" })).toBeVisible();
+  await expect(card.getByText("Nothing was run.")).toBeVisible();
+  await expect(card.locator("pre.sql")).toHaveCount(0);
+  expect(calls).toEqual([]);
+
+  // Body text size, not the serif hero; column names in monospace; the text itself unchanged.
+  const msg = card.locator(".state-body");
+  await expect(msg).toHaveText(examples.examples[3].summary);
+  await expect(msg).toHaveCSS("font-size", "16px");
+  const idents = examples.examples[3].summary.match(/[A-Za-z0-9]+(?:_[A-Za-z0-9]+)+/g) ?? [];
+  expect(idents.length).toBeGreaterThan(0);
+  await expect(msg.locator("code")).toHaveText(idents);
+  const font = await msg.locator("code").first().evaluate((el) => getComputedStyle(el).fontFamily);
+  expect(font).toMatch(/monospace/);
+});
+
 test("line chart x labels never overlap at 390 px", async ({ page }) => {
   await page.setViewportSize({ width: 390, height: 844 });
   await mockAsk(page, {});
@@ -169,6 +196,8 @@ test("refuse is neutral and shows no SQL", async ({ page }) => {
   const head = page.getByRole("heading", { name: "I can’t answer that from this data" });
   await expect(head).toBeVisible();
   await expect(head).toHaveClass(/neutral/);
+  await expect(page.locator(".state-body")).toHaveCSS("font-size", "16px");
+  await expect(page.getByText("Nothing was run.", { exact: false })).toBeVisible();
   await expect(page.getByText("SQL", { exact: true })).toHaveCount(0);
 });
 
@@ -189,13 +218,33 @@ test("empty result", async ({ page }) => {
   await expect(page.getByText("Assumptions")).toBeVisible();
 });
 
+const PER_IP = "Live questions from your network are limited to 20 per hour.";
+
 test("rate limited: countdown, no answer", async ({ page }) => {
-  await mockAsk(page, { status: "limited", scope: "ip", message: "You've asked a lot of questions in a short time.", retry_after_s: 40 }, { status: 429 });
+  await mockAsk(page, { status: "limited", scope: "ip", message: PER_IP, retry_after_s: 40 }, { status: 429 });
   await page.goto("/");
   await askLive(page, "one more");
-  await expect(page.getByRole("heading", { name: "You've asked a lot of questions in a short time." })).toBeVisible();
+  await expect(page.getByRole("heading", { name: PER_IP })).toBeVisible();
   await expect(page.getByText(/Try again in (40|39)\u00a0s/)).toBeVisible();
   await expect(page.getByText(/Try again in 3[0-8]\u00a0s/)).toBeVisible({ timeout: 4000 });
+});
+
+test("rate limited per network: wait in minutes, examples still work", async ({ page }) => {
+  await mockAsk(page, { status: "limited", scope: "ip", message: PER_IP, retry_after_s: 1500 }, { status: 429 });
+  await page.goto("/");
+  await askLive(page, "one more");
+  await expect(page.getByRole("heading", { name: PER_IP })).toBeVisible();
+  await expect(page.locator(".state-help")).toHaveText("Try again in 25\u00a0min. The examples and repeated questions still work.");
+});
+
+test("daily limit: says the demo is at its limit, not the visitor", async ({ page }) => {
+  const heading = "This demo has reached today's limit of 150 live questions.";
+  await mockAsk(page, { status: "limited", scope: "daily", message: heading, retry_after_s: 30000 }, { status: 429 });
+  await page.goto("/");
+  await askLive(page, "one more");
+  await expect(page.getByRole("heading", { name: heading })).toBeVisible();
+  await expect(page.locator(".state-help")).toHaveText("Live questions resume at midnight UTC. The examples and repeated questions still work.");
+  await expect(page.getByText(/your network|you've asked/i)).toHaveCount(0);
 });
 
 test("unavailable and offline offer a retry", async ({ page }) => {

@@ -7,6 +7,7 @@ import datetime
 import decimal
 import itertools
 import math
+import re
 
 
 def plain(v):
@@ -69,17 +70,65 @@ def has_number(rows) -> bool:
     return any(isinstance(plain(v), (int, float)) and not isinstance(v, bool) for row in rows for v in row)
 
 
-def caveat_check(q: dict, message: str, assumptions: list[str]) -> tuple[bool, list[list[str]]] | None:
-    """Reported only; never changes the outcome. None when the question has no must_mention.
+def caveat_check(q: dict, message: str, assumptions: list[str]) -> tuple[bool, list[list[str]], list[str]] | None:
+    """Reported only; never changes the outcome. None when the question has no must_mention or must_not_mention.
 
     must_mention is a list of any-of lists: every list must have at least one term in the message or
-    assumptions (case-insensitive). Returns (ok, the lists that had no match).
+    assumptions (case-insensitive). must_not_mention is a flat list: any term found is a failure.
+    Returns (ok, the must_mention lists that had no match, the must_not_mention terms that were found).
     """
-    if "must_mention" not in q:
+    if "must_mention" not in q and "must_not_mention" not in q:
         return None
     text = " ".join([message, *assumptions]).lower()
-    missing = [terms for terms in q["must_mention"] if not any(t.lower() in text for t in terms)]
-    return not missing, missing
+    missing = [terms for terms in q.get("must_mention", []) if not any(t.lower() in text for t in terms)]
+    found = [t for t in q.get("must_not_mention", []) if t.lower() in text]
+    return not missing and not found, missing, found
+
+
+LOWER = ("lower", "less", "fewer", "smaller")
+HIGHER = ("higher", "more", "greater", "larger")
+SCALE = {"thousand": 1e3, "k": 1e3, "million": 1e6, "m": 1e6, "billion": 1e9, "bn": 1e9, "b": 1e9}
+CLAIM = re.compile(r"\b(" + "|".join(LOWER + HIGHER) + r")\s+than\s+(?:us)?\$?\s*(\d[\d,]*(?:\.\d+)?)"
+                   r"(?:\s*(thousand|million|billion|bn|k|m|b)\b)?", re.IGNORECASE)
+
+
+def single_number(rows) -> float | None:
+    """The result's only numeric value when it has exactly one row and one numeric cell, else None."""
+    if len(rows) != 1:
+        return None
+    nums = [plain(v) for v in rows[0] if isinstance(plain(v), (int, float)) and not isinstance(plain(v), bool)]
+    return nums[0] if len(nums) == 1 else None
+
+
+def comparison_claims(message: str, assumptions: list[str], rows) -> list[str] | None:
+    """Reported only. None unless the result is a single number; else the comparison claims it contradicts.
+
+    Finds "<lower|less|fewer|smaller|higher|more|greater|larger> than <number>" in the message and assumptions.
+    A claim that the answer is (or may be) lower than X is contradicted when the result is >= X; higher than X,
+    when the result is <= X. The agent writes assumptions before it sees the result, so such claims are guesses.
+    """
+    value = single_number(rows)
+    if value is None:
+        return None
+    bad = []
+    for m in CLAIM.finditer(" ".join([message, *assumptions])):
+        x = float(m.group(2).replace(",", "")) * SCALE.get((m.group(3) or "").lower(), 1)
+        lower = m.group(1).lower() in LOWER
+        if (lower and value >= x) or (not lower and value <= x):
+            bad.append(m.group(0))
+    return bad
+
+
+def caveat_ok(terms_ok: bool | None, claims: list[str] | None) -> bool | None:
+    """The headline caveat result for one answer: None when nothing was checked, else pass/fail.
+
+    terms_ok is caveat_check's ok (must_mention and must_not_mention), or None; claims is comparison_claims's.
+    A contradicted comparison claim fails the caveat, also on a question with no caveat terms; such a
+    question is then counted as checked.
+    """
+    if claims:
+        return False
+    return terms_ok
 
 
 def score(q: dict, status: str, rows, scoring: dict) -> tuple[str, str]:

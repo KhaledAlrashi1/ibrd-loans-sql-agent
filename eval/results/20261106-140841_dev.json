@@ -1,0 +1,930 @@
+{
+  "run_at": "2026-11-06T14:08:41",
+  "split": "dev",
+  "model": "claude-sonnet-5-5",
+  "effort": "high",
+  "summary": {
+    "outcomes": {
+      "correct": 20,
+      "abstained": 0,
+      "wrong": 0
+    },
+    "by_category": {
+      "aggregate": {
+        "correct": 4,
+        "abstained": 0,
+        "wrong": 0
+      },
+      "clarify": {
+        "correct": 1,
+        "abstained": 0,
+        "wrong": 0
+      },
+      "count": {
+        "correct": 4,
+        "abstained": 0,
+        "wrong": 0
+      },
+      "lookup": {
+        "correct": 1,
+        "abstained": 0,
+        "wrong": 0
+      },
+      "ranking": {
+        "correct": 2,
+        "abstained": 0,
+        "wrong": 0
+      },
+      "ratio": {
+        "correct": 1,
+        "abstained": 0,
+        "wrong": 0
+      },
+      "refuse": {
+        "correct": 2,
+        "abstained": 0,
+        "wrong": 0
+      },
+      "time": {
+        "correct": 3,
+        "abstained": 0,
+        "wrong": 0
+      },
+      "trap": {
+        "correct": 2,
+        "abstained": 0,
+        "wrong": 0
+      }
+    },
+    "caveats": {
+      "passed": 3,
+      "checked": 3
+    },
+    "comparison_claims": {
+      "contradicted": 0,
+      "checked": 13
+    },
+    "latency_s": {
+      "median": 3.2,
+      "max": 7.08
+    },
+    "tokens": {
+      "input_tokens": 1890,
+      "output_tokens": 7284,
+      "cache_read_input_tokens": 321651,
+      "cache_creation_input_tokens": 16929
+    },
+    "estimated_cost_usd": 0.1833
+  },
+  "results": [
+    {
+      "id": "D01",
+      "category": "count",
+      "question": "How many IBRD loans are in the dataset?",
+      "expected_behavior": "answer",
+      "outcome": "correct",
+      "reason": "",
+      "caveat": null,
+      "claims": [],
+      "status": "answer",
+      "sql": "SELECT COUNT(*) AS loan_count FROM ibrd_loans WHERE is_guarantee = FALSE",
+      "assumptions": [
+        "Guarantees excluded (is_guarantee = FALSE), so only loans are counted.",
+        "One row per loan_number, so each row is counted as one loan.",
+        "Regional entries are included because this is an overall count.",
+        "All loan statuses and all approval years are included, including FY2027, which is a partial fiscal year (Jul-Sep 2026)."
+      ],
+      "message": "Number of IBRD loans (excluding guarantees) in the dataset.",
+      "result": {
+        "columns": [
+          "loan_count"
+        ],
+        "rows": [
+          [
+            9425
+          ]
+        ],
+        "truncated": false
+      },
+      "attempts": 1,
+      "latency_s": 7.08,
+      "tokens": {
+        "input_tokens": 91,
+        "output_tokens": 347,
+        "cache_read_input_tokens": 0,
+        "cache_creation_input_tokens": 16929
+      }
+    },
+    {
+      "id": "D02",
+      "category": "aggregate",
+      "question": "What is the total original principal amount of IBRD loans to Brazil?",
+      "expected_behavior": "answer",
+      "outcome": "correct",
+      "reason": "",
+      "caveat": null,
+      "claims": [],
+      "status": "answer",
+      "sql": "SELECT SUM(original_principal_amount_usd) AS total_original_principal_usd\nFROM ibrd_loans\nWHERE country = 'Brazil' AND is_guarantee = FALSE",
+      "assumptions": [
+        "Guarantees excluded (is_guarantee = FALSE).",
+        "Amount = original_principal_amount_usd (amount committed and approved), US$ at historical exchange rates.",
+        "Includes all loan statuses (including fully repaid and cancelled loans).",
+        "Single-country total, so no regional-entry exclusion is needed."
+      ],
+      "message": "Total original principal amount of all IBRD loans to Brazil, excluding guarantees.",
+      "result": {
+        "columns": [
+          "total_original_principal_usd"
+        ],
+        "rows": [
+          [
+            77053048349.75
+          ]
+        ],
+        "truncated": false
+      },
+      "attempts": 1,
+      "latency_s": 4.21,
+      "tokens": {
+        "input_tokens": 98,
+        "output_tokens": 317,
+        "cache_read_input_tokens": 16929,
+        "cache_creation_input_tokens": 0
+      }
+    },
+    {
+      "id": "D03",
+      "category": "ranking",
+      "question": "Which 10 countries have the most undisbursed IBRD loans?",
+      "expected_behavior": "answer",
+      "outcome": "correct",
+      "reason": "",
+      "caveat": null,
+      "claims": null,
+      "status": "answer",
+      "sql": "SELECT country, SUM(undisbursed_amount_usd) AS undisbursed_usd\nFROM ibrd_loans\nWHERE is_guarantee = FALSE AND is_regional_entry = FALSE\nGROUP BY country\nORDER BY undisbursed_usd DESC\nLIMIT 10",
+      "assumptions": [
+        "'Most undisbursed' ranks by total undisbursed amount (undisbursed_amount_usd), not number of loans.",
+        "Guarantees excluded (is_guarantee = FALSE).",
+        "Regional entries (6R, 3E, 3S, 3W) excluded since this is a country ranking.",
+        "undisbursed_amount_usd is in US$ at End of Period exchange rates.",
+        "Summed across all loans of each country regardless of loan status."
+      ],
+      "message": "Top 10 countries by total undisbursed amount on IBRD loans.",
+      "result": {
+        "columns": [
+          "country",
+          "undisbursed_usd"
+        ],
+        "rows": [
+          [
+            "Turkiye",
+            14851719396.98
+          ],
+          [
+            "India",
+            12981866606.320002
+          ],
+          [
+            "Brazil",
+            11228931299.77
+          ],
+          [
+            "Indonesia",
+            6203613206.320001
+          ],
+          [
+            "Philippines",
+            6079643536.24
+          ],
+          [
+            "China",
+            4446790594.799999
+          ],
+          [
+            "Morocco",
+            4151783521.0499997
+          ],
+          [
+            "Angola",
+            2989358422.21
+          ],
+          [
+            "Peru",
+            2405600750.19
+          ],
+          [
+            "Pakistan",
+            2393247690.01
+          ]
+        ],
+        "truncated": false
+      },
+      "attempts": 1,
+      "latency_s": 3.32,
+      "tokens": {
+        "input_tokens": 98,
+        "output_tokens": 391,
+        "cache_read_input_tokens": 16929,
+        "cache_creation_input_tokens": 0
+      }
+    },
+    {
+      "id": "D04",
+      "category": "ranking",
+      "question": "Which 5 countries owe the most to the IBRD?",
+      "expected_behavior": "answer",
+      "outcome": "correct",
+      "reason": "",
+      "caveat": null,
+      "claims": null,
+      "status": "answer",
+      "sql": "SELECT country, SUM(borrowers_obligation_usd) AS total_owed_usd\nFROM ibrd_loans\nWHERE is_guarantee = FALSE AND is_regional_entry = FALSE\nGROUP BY country\nORDER BY total_owed_usd DESC\nLIMIT 5",
+      "assumptions": [
+        "Amount owed = borrowers_obligation_usd (outstanding balance including amounts due to third parties), summed per country.",
+        "Guarantees excluded (is_guarantee = FALSE).",
+        "Regional entries (Caribbean, Eastern and Southern Africa, Southern Africa, Western and Central Africa) excluded from the country ranking (is_regional_entry = FALSE).",
+        "Ranked by total amount owed, not number of loans.",
+        "US$ at historical exchange rates; snapshot as of 2026-09-30."
+      ],
+      "message": "The five countries with the largest total outstanding obligation to the IBRD on loans.",
+      "result": {
+        "columns": [
+          "country",
+          "total_owed_usd"
+        ],
+        "rows": [
+          [
+            "India",
+            23573624318.849995
+          ],
+          [
+            "Indonesia",
+            22822215638.15
+          ],
+          [
+            "Ukraine",
+            19477426850.7
+          ],
+          [
+            "Philippines",
+            17153023419.73
+          ],
+          [
+            "Colombia",
+            16575487974.05
+          ]
+        ],
+        "truncated": false
+      },
+      "attempts": 1,
+      "latency_s": 3.4,
+      "tokens": {
+        "input_tokens": 94,
+        "output_tokens": 414,
+        "cache_read_input_tokens": 16929,
+        "cache_creation_input_tokens": 0
+      }
+    },
+    {
+      "id": "D05",
+      "category": "aggregate",
+      "question": "How much does Turkey owe the IBRD?",
+      "expected_behavior": "answer",
+      "outcome": "correct",
+      "reason": "",
+      "caveat": null,
+      "claims": [],
+      "status": "answer",
+      "sql": "SELECT SUM(borrowers_obligation_usd) AS owed_usd\nFROM ibrd_loans\nWHERE country = 'Turkiye' AND is_guarantee = FALSE",
+      "assumptions": [
+        "Turkey is listed as 'Turkiye' in the data.",
+        "Amount owed = borrowers_obligation_usd, the outstanding balance as of the snapshot date (2026-09-30).",
+        "Guarantees excluded (is_guarantee = FALSE).",
+        "Amounts are US$ at historical exchange rates, with exchange adjustments included in the borrower's obligation.",
+        "Summed over all Turkiye loans; loans with a zero balance add nothing."
+      ],
+      "message": "Total outstanding borrower's obligation of Turkiye on IBRD loans.",
+      "result": {
+        "columns": [
+          "owed_usd"
+        ],
+        "rows": [
+          [
+            13891928313.520002
+          ]
+        ],
+        "truncated": false
+      },
+      "attempts": 1,
+      "latency_s": 3.38,
+      "tokens": {
+        "input_tokens": 91,
+        "output_tokens": 358,
+        "cache_read_input_tokens": 16929,
+        "cache_creation_input_tokens": 0
+      }
+    },
+    {
+      "id": "D06",
+      "category": "count",
+      "question": "How many loans has South Korea received from the IBRD?",
+      "expected_behavior": "answer",
+      "outcome": "correct",
+      "reason": "",
+      "caveat": null,
+      "claims": [],
+      "status": "answer",
+      "sql": "SELECT COUNT(*) AS loan_count FROM ibrd_loans WHERE country = 'Korea, Republic of' AND is_guarantee = FALSE",
+      "assumptions": [
+        "South Korea is listed as 'Korea, Republic of'.",
+        "Guarantees excluded (is_guarantee = FALSE).",
+        "Counts every loan row (one row per loan_number) regardless of status, including fully repaid and cancelled loans.",
+        "Counts loans, not distinct projects."
+      ],
+      "message": "Number of IBRD loans (excluding guarantees) to Korea, Republic of, across all statuses.",
+      "result": {
+        "columns": [
+          "loan_count"
+        ],
+        "rows": [
+          [
+            127
+          ]
+        ],
+        "truncated": false
+      },
+      "attempts": 1,
+      "latency_s": 3.1,
+      "tokens": {
+        "input_tokens": 93,
+        "output_tokens": 300,
+        "cache_read_input_tokens": 16929,
+        "cache_creation_input_tokens": 0
+      }
+    },
+    {
+      "id": "D07",
+      "category": "time",
+      "question": "What was the total amount of IBRD loans approved in each fiscal year from 2020 to 2025?",
+      "expected_behavior": "answer",
+      "outcome": "correct",
+      "reason": "",
+      "caveat": null,
+      "claims": null,
+      "status": "answer",
+      "sql": "SELECT board_approval_fy AS fiscal_year, SUM(original_principal_amount_usd) AS total_approved_usd\nFROM ibrd_loans\nWHERE is_guarantee = FALSE AND board_approval_fy BETWEEN 2020 AND 2025\nGROUP BY board_approval_fy\nORDER BY board_approval_fy",
+      "assumptions": [
+        "Fiscal year = board_approval_fy (Jul-Jun; FY2024 = Jul 2023-Jun 2024), FY2020 to FY2025 inclusive.",
+        "Amount approved = original_principal_amount_usd (US$ at historical exchange rates).",
+        "Guarantees excluded (is_guarantee = FALSE).",
+        "Regional entries are not excluded since this is an overall total, not a country ranking.",
+        "Amounts reflect loans still in the snapshot, one row per loan_number."
+      ],
+      "message": "Total original principal amount of IBRD loans (excluding guarantees) approved in each fiscal year FY2020-FY2025.",
+      "result": {
+        "columns": [
+          "fiscal_year",
+          "total_approved_usd"
+        ],
+        "rows": [
+          [
+            2020,
+            26863414500.0
+          ],
+          [
+            2021,
+            29842550000.0
+          ],
+          [
+            2022,
+            32444699576.0
+          ],
+          [
+            2023,
+            38404334500.0
+          ],
+          [
+            2024,
+            36621591620.0
+          ],
+          [
+            2025,
+            39929105434.0
+          ]
+        ],
+        "truncated": false
+      },
+      "attempts": 1,
+      "latency_s": 3.23,
+      "tokens": {
+        "input_tokens": 108,
+        "output_tokens": 441,
+        "cache_read_input_tokens": 16929,
+        "cache_creation_input_tokens": 0
+      }
+    },
+    {
+      "id": "D08",
+      "category": "aggregate",
+      "question": "Which region has the largest undisbursed loan amount?",
+      "expected_behavior": "answer",
+      "outcome": "correct",
+      "reason": "",
+      "caveat": null,
+      "claims": [],
+      "status": "answer",
+      "sql": "SELECT region, SUM(undisbursed_amount_usd) AS total_undisbursed_usd\nFROM ibrd_loans\nWHERE is_guarantee = FALSE\nGROUP BY region\nORDER BY total_undisbursed_usd DESC\nLIMIT 1",
+      "assumptions": [
+        "Guarantees excluded (is_guarantee = FALSE).",
+        "Largest undisbursed amount means the highest total undisbursed_amount_usd summed across loans in the region, not the number of loans.",
+        "Amount column is undisbursed_amount_usd, which is in US$ at End of Period exchange rates.",
+        "Regional entries (e.g. Caribbean) are not excluded, because this is a comparison of regions and not of countries.",
+        "region is the current World Bank administrative region, even for old loans.",
+        "All loan statuses are included."
+      ],
+      "message": "The region with the highest total undisbursed amount on IBRD loans, excluding guarantees.",
+      "result": {
+        "columns": [
+          "region",
+          "total_undisbursed_usd"
+        ],
+        "rows": [
+          [
+            "LATIN AMERICA AND CARIBBEAN",
+            25834171033.09
+          ]
+        ],
+        "truncated": false
+      },
+      "attempts": 1,
+      "latency_s": 6.37,
+      "tokens": {
+        "input_tokens": 93,
+        "output_tokens": 677,
+        "cache_read_input_tokens": 16929,
+        "cache_creation_input_tokens": 0
+      }
+    },
+    {
+      "id": "D09",
+      "category": "trap",
+      "question": "What is the average interest rate on IBRD loans?",
+      "expected_behavior": "answer",
+      "outcome": "correct",
+      "reason": "",
+      "caveat": {
+        "ok": true,
+        "missing": [],
+        "forbidden": []
+      },
+      "claims": null,
+      "status": "answer",
+      "sql": "SELECT AVG(interest_rate) AS avg_interest_rate, COUNT(*) AS loans_included FROM ibrd_loans WHERE is_guarantee = FALSE AND interest_rate > 0",
+      "assumptions": [
+        "Guarantees excluded (is_guarantee = FALSE).",
+        "Only loans with interest_rate > 0 are included, because 0 means multiple rates (all FSL, some SCL and others), not 0%; NULL rates (guarantees) are also excluded.",
+        "The result is an unweighted average over loans with a single reported rate, mostly older loans; multiple-rate loans (all FSL, some SCL) are not included.",
+        "interest_rate units are not documented; values look like percent, so the average is shown in the stored units.",
+        "Regional entries are included because this is an overall figure, not a country ranking."
+      ],
+      "message": "Unweighted average interest rate across IBRD loans that report a single rate (>0), with the count of loans included.",
+      "result": {
+        "columns": [
+          "avg_interest_rate",
+          "loans_included"
+        ],
+        "rows": [
+          [
+            5.880697376568286,
+            6137
+          ]
+        ],
+        "truncated": false
+      },
+      "attempts": 1,
+      "latency_s": 3.15,
+      "tokens": {
+        "input_tokens": 92,
+        "output_tokens": 414,
+        "cache_read_input_tokens": 16929,
+        "cache_creation_input_tokens": 0
+      }
+    },
+    {
+      "id": "D10",
+      "category": "count",
+      "question": "How many guarantees are in the dataset?",
+      "expected_behavior": "answer",
+      "outcome": "correct",
+      "reason": "",
+      "caveat": null,
+      "claims": [],
+      "status": "answer",
+      "sql": "SELECT COUNT(*) AS guarantee_count FROM ibrd_loans WHERE is_guarantee = TRUE",
+      "assumptions": [
+        "Guarantees are rows with is_guarantee = TRUE (loan number starts with IBRDB or IBRDG), per the official prefix rule.",
+        "This includes 20 B-loans (BLNR and BLNC) that carry the IBRDB prefix.",
+        "Counted rows (one row per loan_number); regional entries are not excluded since this is an overall count."
+      ],
+      "message": "Number of guarantee rows (IBRDB/IBRDG prefix) in the dataset.",
+      "result": {
+        "columns": [
+          "guarantee_count"
+        ],
+        "rows": [
+          [
+            113
+          ]
+        ],
+        "truncated": false
+      },
+      "attempts": 1,
+      "latency_s": 2.59,
+      "tokens": {
+        "input_tokens": 89,
+        "output_tokens": 305,
+        "cache_read_input_tokens": 16929,
+        "cache_creation_input_tokens": 0
+      }
+    },
+    {
+      "id": "D11",
+      "category": "trap",
+      "question": "How many different projects has Morocco had IBRD loans for?",
+      "expected_behavior": "answer",
+      "outcome": "correct",
+      "reason": "",
+      "caveat": null,
+      "claims": [],
+      "status": "answer",
+      "sql": "SELECT COUNT(DISTINCT project_id) AS project_count\nFROM ibrd_loans\nWHERE country = 'Morocco' AND is_guarantee = FALSE",
+      "assumptions": [
+        "Projects counted with COUNT(DISTINCT project_id), since one project can have several loans.",
+        "Guarantees excluded (is_guarantee = FALSE).",
+        "Morocco is matched on the borrower country column (country = 'Morocco').",
+        "All loan statuses and all years included (including fully repaid and cancelled loans)."
+      ],
+      "message": "Number of distinct projects with IBRD loans to Morocco.",
+      "result": {
+        "columns": [
+          "project_count"
+        ],
+        "rows": [
+          [
+            215
+          ]
+        ],
+        "truncated": false
+      },
+      "attempts": 1,
+      "latency_s": 2.76,
+      "tokens": {
+        "input_tokens": 95,
+        "output_tokens": 303,
+        "cache_read_input_tokens": 16929,
+        "cache_creation_input_tokens": 0
+      }
+    },
+    {
+      "id": "D12",
+      "category": "lookup",
+      "question": "What is the largest single IBRD loan ever approved, and which country received it?",
+      "expected_behavior": "answer",
+      "outcome": "correct",
+      "reason": "",
+      "caveat": null,
+      "claims": [],
+      "status": "answer",
+      "sql": "SELECT loan_number, country, project_id, project_name, board_approval_date, original_principal_amount_usd\nFROM ibrd_loans\nWHERE is_guarantee = FALSE\n  AND original_principal_amount_usd = (SELECT MAX(original_principal_amount_usd) FROM ibrd_loans WHERE is_guarantee = FALSE)\nORDER BY loan_number",
+      "assumptions": [
+        "Largest loan = highest original_principal_amount_usd (amount committed and approved at approval, historical US$).",
+        "Guarantees excluded (is_guarantee = FALSE).",
+        "This is a single-loan lookup rather than a country ranking, so regional entries are not excluded.",
+        "If several loans tie for the maximum amount, all of them are returned."
+      ],
+      "message": "The loan with the largest original approved principal amount (excluding guarantees), and the country that received it.",
+      "result": {
+        "columns": [
+          "loan_number",
+          "country",
+          "project_id",
+          "project_name",
+          "board_approval_date",
+          "original_principal_amount_usd"
+        ],
+        "rows": [
+          [
+            "IBRD78620",
+            "South Africa",
+            "P116410",
+            "ZA:Eskom Investment Support Project",
+            "2010-04-08",
+            3750000000.0
+          ]
+        ],
+        "truncated": false
+      },
+      "attempts": 1,
+      "latency_s": 4.82,
+      "tokens": {
+        "input_tokens": 99,
+        "output_tokens": 609,
+        "cache_read_input_tokens": 16929,
+        "cache_creation_input_tokens": 0
+      }
+    },
+    {
+      "id": "D13",
+      "category": "count",
+      "question": "How many loans have been fully cancelled?",
+      "expected_behavior": "answer",
+      "outcome": "correct",
+      "reason": "",
+      "caveat": {
+        "ok": true,
+        "missing": [],
+        "forbidden": []
+      },
+      "claims": [],
+      "status": "answer",
+      "sql": "SELECT COUNT(*) AS fully_cancelled_loans\nFROM ibrd_loans\nWHERE loan_status = 'Fully Cancelled' AND is_guarantee = FALSE",
+      "assumptions": [
+        "Matched the exact status 'Fully Cancelled' (Terminated loans not included, since the question names the exact status).",
+        "Guarantees excluded (is_guarantee = FALSE).",
+        "Regional entries are included since this is an overall count.",
+        "Each row is one loan (one row per loan_number), so COUNT(*) counts loans."
+      ],
+      "message": "Count of loans with status 'Fully Cancelled'.",
+      "result": {
+        "columns": [
+          "fully_cancelled_loans"
+        ],
+        "rows": [
+          [
+            178
+          ]
+        ],
+        "truncated": false
+      },
+      "attempts": 1,
+      "latency_s": 3.17,
+      "tokens": {
+        "input_tokens": 89,
+        "output_tokens": 308,
+        "cache_read_input_tokens": 16929,
+        "cache_creation_input_tokens": 0
+      }
+    },
+    {
+      "id": "D14",
+      "category": "aggregate",
+      "question": "How much has been cancelled in total on IBRD loans to Argentina?",
+      "expected_behavior": "answer",
+      "outcome": "correct",
+      "reason": "",
+      "caveat": null,
+      "claims": [],
+      "status": "answer",
+      "sql": "SELECT SUM(cancelled_amount_usd) AS cancelled_usd\nFROM ibrd_loans\nWHERE country = 'Argentina' AND is_guarantee = FALSE",
+      "assumptions": [
+        "Guarantees excluded (is_guarantee = FALSE).",
+        "Cancelled = sum of cancelled_amount_usd across all loans to Argentina, regardless of loan status (includes Terminated and Fully Cancelled loans).",
+        "Amounts are US$ at historical exchange rates.",
+        "Country is matched on the borrower country column 'Argentina'; no regional entries are involved."
+      ],
+      "message": "Total cancelled amount (US$) across all IBRD loans to Argentina.",
+      "result": {
+        "columns": [
+          "cancelled_usd"
+        ],
+        "rows": [
+          [
+            7359428543.400001
+          ]
+        ],
+        "truncated": false
+      },
+      "attempts": 1,
+      "latency_s": 2.69,
+      "tokens": {
+        "input_tokens": 99,
+        "output_tokens": 333,
+        "cache_read_input_tokens": 16929,
+        "cache_creation_input_tokens": 0
+      }
+    },
+    {
+      "id": "D15",
+      "category": "time",
+      "question": "How many IBRD loans were approved in fiscal year 2027?",
+      "expected_behavior": "answer",
+      "outcome": "correct",
+      "reason": "",
+      "caveat": {
+        "ok": true,
+        "missing": [],
+        "forbidden": []
+      },
+      "claims": [],
+      "status": "answer",
+      "sql": "SELECT COUNT(*) AS loan_count FROM ibrd_loans WHERE board_approval_fy = 2027 AND is_guarantee = FALSE",
+      "assumptions": [
+        "Fiscal year 2027 = board_approval_fy = 2027 (Jul 2026 - Jun 2027).",
+        "FY2027 is partial in this snapshot: it only covers 2026-07-01 to 2026-09-30, so the full-year count could be higher.",
+        "Guarantees excluded (is_guarantee = FALSE); FY2027 has no guarantees anyway.",
+        "Counted loans as rows (one row per loan_number), not distinct projects.",
+        "Regional entries are not excluded because this is an overall count, not a country ranking."
+      ],
+      "message": "Number of IBRD loans approved in FY2027 (partial year, Jul-Sep 2026 only).",
+      "result": {
+        "columns": [
+          "loan_count"
+        ],
+        "rows": [
+          [
+            44
+          ]
+        ],
+        "truncated": false
+      },
+      "attempts": 1,
+      "latency_s": 3.06,
+      "tokens": {
+        "input_tokens": 97,
+        "output_tokens": 383,
+        "cache_read_input_tokens": 16929,
+        "cache_creation_input_tokens": 0
+      }
+    },
+    {
+      "id": "D16",
+      "category": "ratio",
+      "question": "What share of Mexico's original IBRD loan amount was cancelled?",
+      "expected_behavior": "answer",
+      "outcome": "correct",
+      "reason": "",
+      "caveat": null,
+      "claims": [],
+      "status": "answer",
+      "sql": "SELECT SUM(cancelled_amount_usd) / SUM(original_principal_amount_usd) AS cancelled_share\nFROM ibrd_loans\nWHERE country = 'Mexico' AND is_guarantee = FALSE",
+      "assumptions": [
+        "Guarantees excluded (is_guarantee = FALSE).",
+        "Original loan amount = SUM(original_principal_amount_usd); cancelled = SUM(cancelled_amount_usd), both stored columns used directly.",
+        "Share = total cancelled / total original principal across all Mexico loans of every status, returned as a fraction between 0 and 1.",
+        "Cancelled amount includes terminations, as the column description states.",
+        "Amounts are US$ at historical exchange rates.",
+        "Regional entries are not relevant since the filter is country = 'Mexico'."
+      ],
+      "message": "Cancelled amount as a fraction of the total original principal of all IBRD loans to Mexico.",
+      "result": {
+        "columns": [
+          "cancelled_share"
+        ],
+        "rows": [
+          [
+            0.11509094278969142
+          ]
+        ],
+        "truncated": false
+      },
+      "attempts": 1,
+      "latency_s": 4.43,
+      "tokens": {
+        "input_tokens": 99,
+        "output_tokens": 409,
+        "cache_read_input_tokens": 16929,
+        "cache_creation_input_tokens": 0
+      }
+    },
+    {
+      "id": "D17",
+      "category": "time",
+      "question": "When was the most recent IBRD loan to Jordan approved?",
+      "expected_behavior": "answer",
+      "outcome": "correct",
+      "reason": "",
+      "caveat": null,
+      "claims": [],
+      "status": "answer",
+      "sql": "SELECT loan_number, project_id, project_name, board_approval_date, original_principal_amount_usd\nFROM ibrd_loans\nWHERE country = 'Jordan' AND is_guarantee = FALSE\nORDER BY board_approval_date DESC, loan_number DESC\nLIMIT 1",
+      "assumptions": [
+        "Guarantees excluded (is_guarantee = FALSE).",
+        "Most recent = latest board_approval_date for loans where country = 'Jordan' (borrower country, not guarantor).",
+        "Ties on the same date are broken by loan_number descending; only one row is returned.",
+        "Loan amount shown = original_principal_amount_usd (amount approved), US$ at historical exchange rates.",
+        "Includes all loan statuses (including Fully Cancelled or Terminated) and loans approved up to the snapshot date."
+      ],
+      "message": "The latest-approved IBRD loan to Jordan, with its approval date, project and approved amount.",
+      "result": {
+        "columns": [
+          "loan_number",
+          "project_id",
+          "project_name",
+          "board_approval_date",
+          "original_principal_amount_usd"
+        ],
+        "rows": [
+          [
+            "IBRDK0130",
+            "P509855",
+            "Growth DPF II",
+            "2026-06-30",
+            700000000.0
+          ]
+        ],
+        "truncated": false
+      },
+      "attempts": 1,
+      "latency_s": 3.62,
+      "tokens": {
+        "input_tokens": 96,
+        "output_tokens": 415,
+        "cache_read_input_tokens": 16929,
+        "cache_creation_input_tokens": 0
+      }
+    },
+    {
+      "id": "D18",
+      "category": "clarify",
+      "question": "How many active loans does Brazil have?",
+      "expected_behavior": "clarify",
+      "outcome": "correct",
+      "reason": "",
+      "caveat": null,
+      "claims": null,
+      "status": "clarify",
+      "sql": "",
+      "assumptions": [],
+      "message": "This dataset has no 'active' loan status. By 'active', do you mean loans that are still disbursing (undisbursed funds remain), or loans that have an outstanding balance owed?",
+      "result": {
+        "columns": [],
+        "rows": [],
+        "truncated": false
+      },
+      "attempts": 1,
+      "latency_s": 2.18,
+      "tokens": {
+        "input_tokens": 88,
+        "output_tokens": 172,
+        "cache_read_input_tokens": 16929,
+        "cache_creation_input_tokens": 0
+      }
+    },
+    {
+      "id": "D19",
+      "category": "refuse",
+      "question": "How much has IDA lent to Kenya?",
+      "expected_behavior": "refuse",
+      "outcome": "correct",
+      "reason": "",
+      "caveat": null,
+      "claims": null,
+      "status": "refuse",
+      "sql": "",
+      "assumptions": [],
+      "message": "IDA lending is not in this dataset. It only covers IBRD loans and guarantees, and no other World Bank Group institution. I can show how much IBRD has lent to Kenya instead. For example, I could give total approved or disbursed amounts, or the amount Kenya still owes.",
+      "result": {
+        "columns": [],
+        "rows": [],
+        "truncated": false
+      },
+      "attempts": 1,
+      "latency_s": 2.48,
+      "tokens": {
+        "input_tokens": 90,
+        "output_tokens": 205,
+        "cache_read_input_tokens": 16929,
+        "cache_creation_input_tokens": 0
+      }
+    },
+    {
+      "id": "D20",
+      "category": "refuse",
+      "question": "Delete all loans to Brazil from the database.",
+      "expected_behavior": "refuse",
+      "outcome": "correct",
+      "reason": "",
+      "caveat": null,
+      "claims": null,
+      "status": "refuse",
+      "sql": "",
+      "assumptions": [],
+      "message": "I can't delete data. I can only run read-only queries on this dataset. I can instead show Brazil's loans, for example how many there are, their total approved amount, or how much is still owed (borrowers_obligation_usd).",
+      "result": {
+        "columns": [],
+        "rows": [],
+        "truncated": false
+      },
+      "attempts": 1,
+      "latency_s": 2.39,
+      "tokens": {
+        "input_tokens": 91,
+        "output_tokens": 183,
+        "cache_read_input_tokens": 16929,
+        "cache_creation_input_tokens": 0
+      }
+    }
+  ]
+}

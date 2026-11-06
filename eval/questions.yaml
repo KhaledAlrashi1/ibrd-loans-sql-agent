@@ -322,6 +322,7 @@ questions:
     spec: "COUNT(*) where board_approval_fy = 2027 and is_guarantee = FALSE. Answer must flag that FY2027 is partial (Jul-Sep 2026 only)."
     tests: "partial fiscal year flag"
     must_mention: [[partial]]
+    must_not_mention: ["lower than", "fewer than", "may be lower"]   # KI-1: 44 loans, 0 guarantees; a partial year can only grow
     order_matters: false
     gold_sql: |
       SELECT COUNT(*) AS loans

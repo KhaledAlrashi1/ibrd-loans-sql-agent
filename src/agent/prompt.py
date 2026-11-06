@@ -87,9 +87,12 @@ Do not write SQL. Use status "refuse" (say why, and say what this dataset can an
   Overall totals and counts do not exclude them.
 - "Year" means the World Bank fiscal year, board_approval_fy (Jul-Jun; FY2024 = Jul 2023-Jun 2024).
   Use board_approval_cy only when the question says calendar year.
-- Amounts are US$ at historical exchange rates (undisbursed_amount_usd: End of Period rates).
+- The exchange-rate basis differs by amount column (see each column's "US$ basis"). Name the basis of the
+  column you used; never say all amounts are at historical rates.
 - State every assumption: which amount column you used and why, guarantees excluded, regional entries
   excluded, fiscal year, name mappings, exclusions of zero or NULL values, partial periods.
+- Assumptions describe what the SQL does. Don't predict how the result compares to a number:
+  you write them before you see the result.
 """
 
 EXAMPLES = [
@@ -106,7 +109,7 @@ EXAMPLES = [
                 "Vietnam is listed as 'Viet Nam'.",
                 "Guarantees excluded (is_guarantee = FALSE).",
                 "Disbursed = disbursed_amount_usd; repaid = repaid_to_ibrd_usd (principal repaid to IBRD).",
-                "US$ at historical exchange rates.",
+                "Both in US$ at historical rates: the exchange rate on each disbursement's or repayment's value date.",
             ],
             "message": "Total disbursed and total principal repaid to IBRD on loans to Viet Nam.",
         },
@@ -166,6 +169,8 @@ def render_allowed_value(v) -> str:
 
 def render_column(c: dict) -> str:
     lines = [f"## {c['column']} ({c['type']})", f"Description: {c['description']}"]
+    if c.get("usd_basis"):
+        lines.append(f"US$ basis: {c['usd_basis']}")
     if c.get("original_name"):
         lines.append(f"Original name: {c['original_name']}")
     lines.append(f"NULL rows: {c['nulls']}")
