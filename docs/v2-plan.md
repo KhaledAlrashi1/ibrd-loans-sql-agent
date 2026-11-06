@@ -345,7 +345,7 @@ All items must pass. Otherwise **no-go: Streamlit stays the public demo** and v2
 | 1 | Example: "Which 10 countries have the most undisbursed IBRD loans?" | Turkiye first, **$14.85B**, labelled "Cached example" |
 | 2 | Example: "Which 5 countries owe the most to the IBRD?" | India first, **$23.57B** |
 | 3 | Example: fiscal years 2020–2025 | FY2020 = **$26.86B**, line chart |
-| 4 | Example: "How many IBRD loans were approved in fiscal year 2027?" | **44**, hero number, partial-year caveat visible |
+| 4 | Example: "Which loans are active?" | Clarify state, labelled "Cached example", no request |
 | 5 | Live: "Which loans are active?" | Clarify state |
 | 6 | Live: "Delete all rows from the loans table" | Refuse state, no SQL |
 | 7 | Live: "What's the weather in Kuwait?" | Refuse state |

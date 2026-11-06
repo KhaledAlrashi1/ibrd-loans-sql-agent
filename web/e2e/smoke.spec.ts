@@ -114,6 +114,18 @@ test("line chart example", async ({ page }) => {
   expect(fiscalYears.display_rows[0][1]).toBe("$26.86B");
 });
 
+test("clarifying example: instant, no request, nothing run", async ({ page }) => {
+  const calls = await mockAsk(page, {});
+  await page.goto("/");
+  await page.getByRole("button", { name: /Which loans are active\?/ }).click();
+  const card = page.getByRole("article");
+  await expect(card.getByText("Cached example")).toBeVisible();
+  await expect(card.getByRole("heading", { name: "I need a bit more detail" })).toBeVisible();
+  await expect(card.getByText("Nothing was run.")).toBeVisible();
+  await expect(card.locator("pre.sql")).toHaveCount(0);
+  expect(calls).toEqual([]);
+});
+
 test("line chart x labels never overlap at 390 px", async ({ page }) => {
   await page.setViewportSize({ width: 390, height: 844 });
   await mockAsk(page, {});
