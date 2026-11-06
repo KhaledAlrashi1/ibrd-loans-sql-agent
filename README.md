@@ -5,8 +5,7 @@ it shows the answer with the SQL it ran and every assumption behind it.
 
 **Live demo:** https://ibrd-loans-sql-agent.vercel.app
 
-<!-- TODO: demo GIF at docs/demo.gif -->
-*Demo GIF: to be added.*
+![Clicking a cached example, asking a live question, and opening the SQL behind the answer](docs/demo.gif)
 
 ## Why you can check its answers
 
