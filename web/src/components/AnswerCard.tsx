@@ -9,12 +9,13 @@ import type { Answer } from "@/lib/types";
 import { exactValue, isYearColumn, seconds } from "@/lib/format";
 import { BarChart, barsFit } from "./BarChart";
 import { LineChart } from "./LineChart";
-import { ResultTable } from "./ResultTable";
+import { ExactSwitch, ResultTable, hasRoundedValues } from "./ResultTable";
 import { SqlBlock } from "./SqlBlock";
 import { IconAlert, IconBlock, IconCalendar, IconChevron, IconQuestion, IconSearchOff } from "./icons";
 
 const UNRELIABLE = "I couldn't answer that reliably.";
 const PARTIAL = /\bpartial(ly)?\b/i;
+const NEGATED = /\b(not|no)\b/i;  // "FY2027 is not in the range, so no partial-year figures are included"
 const IDENT = /([A-Za-z0-9]+(?:_[A-Za-z0-9]+)+)/;  // snake_case tokens, e.g. borrowers_obligation_usd
 
 // Fixed follow-ups on a clarify card, each checked on the live agent to return an answer (Nov 6, 2026).
@@ -98,7 +99,7 @@ function Body({ data, onAsk }: { data: Answer; onAsk: (question: string) => void
 
 function AnswerBody({ data }: { data: Answer }) {
   const single = data.rows.length === 1 && data.columns.length === 1;
-  const partial = data.assumptions.find((a) => PARTIAL.test(a));
+  const partial = data.assumptions.find((a) => PARTIAL.test(a) && !NEGATED.test(a));
   return (
     <>
       <h2 id="result-heading" className="answer-q">{data.question}</h2>
@@ -124,6 +125,7 @@ function AnswerBody({ data }: { data: Answer }) {
 function Views({ data }: { data: Answer }) {
   const chart = data.chart && (data.chart.kind === "line" || barsFit(data)) ? data.chart : null;
   const [tab, setTab] = useState<"chart" | "table">(chart ? "chart" : "table");
+  const [exact, setExact] = useState(false);
   const tabs = useRef<(HTMLButtonElement | null)[]>([]);
   if (!chart) return <ResultTable data={data} />;
 
@@ -137,20 +139,23 @@ function Views({ data }: { data: Answer }) {
 
   return (
     <div className="views">
-      <div className="seg" role="tablist" aria-label="View" onKeyDown={onKey}>
-        {names.map((n, i) => (
-          <button key={n} ref={(el) => { tabs.current[i] = el; }} type="button" role="tab" id={`tab-${n}`}
-            aria-selected={tab === n} aria-controls={`panel-${n}`} tabIndex={tab === n ? 0 : -1} onClick={() => setTab(n)}>
-            {n === "chart" ? "Chart" : "Table"}
-          </button>
-        ))}
+      <div className="views-bar">
+        <div className="seg" role="tablist" aria-label="View" onKeyDown={onKey}>
+          {names.map((n, i) => (
+            <button key={n} ref={(el) => { tabs.current[i] = el; }} type="button" role="tab" id={`tab-${n}`}
+              aria-selected={tab === n} aria-controls={`panel-${n}`} tabIndex={tab === n ? 0 : -1} onClick={() => setTab(n)}>
+              {n === "chart" ? "Chart" : "Table"}
+            </button>
+          ))}
+        </div>
+        {tab === "table" && hasRoundedValues(data) && <ExactSwitch on={exact} onChange={setExact} />}
       </div>
       {/* Both panels stay mounted, so the bars grow once and not on every tab switch. */}
       <div role="tabpanel" id="panel-chart" aria-labelledby="tab-chart" hidden={tab !== "chart"}>
         {chart.kind === "bar" ? <BarChart data={data} /> : <LineChart data={data} />}
       </div>
       <div role="tabpanel" id="panel-table" aria-labelledby="tab-table" hidden={tab !== "table"}>
-        <ResultTable data={data} />
+        <ResultTable data={data} exact={exact} />
       </div>
     </div>
   );

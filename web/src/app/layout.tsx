@@ -6,11 +6,20 @@ import "./globals.css";
 const sans = Source_Sans_3({ subsets: ["latin"], variable: "--font-sans", display: "swap" });
 const serif = Source_Serif_4({ subsets: ["latin"], variable: "--font-serif", display: "swap" });
 
+const TITLE = "Ask the IBRD loan book";
+const DESCRIPTION = "Ask about IBRD loans in plain English and see the answer, its SQL and every assumption.";
+// Absolute URLs for the preview images: production on production, the deployment's own URL on a preview.
+const SITE_URL = process.env.VERCEL_ENV === "production" ? "https://ibrd-loans-sql-agent.vercel.app"
+  : process.env.VERCEL_URL ? `https://${process.env.VERCEL_URL}` : "http://localhost:3000";
+
+// The preview images come from opengraph-image.tsx / twitter-image.tsx; the icons from icon.svg,
+// apple-icon.tsx and favicon.ico.
 export const metadata: Metadata = {
-  title: "Ask the IBRD loan book",
-  description:
-    "Ask about IBRD loans in plain English. An AI writes the SQL, the app checks and runs it on the official " +
-    "World Bank snapshot, and you see the SQL and every assumption.",
+  metadataBase: new URL(SITE_URL),
+  title: TITLE,
+  description: DESCRIPTION,
+  openGraph: { type: "website", url: "/", siteName: TITLE, title: TITLE, description: DESCRIPTION, locale: "en_US" },
+  twitter: { card: "summary_large_image", title: TITLE, description: DESCRIPTION },
 };
 
 export const viewport: Viewport = {

@@ -3,6 +3,7 @@ import { DataPanel } from "@/components/DataPanel";
 import { RegionChart } from "@/components/RegionChart";
 import { Stats } from "@/components/Stats";
 import { ThemeToggle } from "@/components/ThemeToggle";
+import { Trust } from "@/components/Trust";
 import type { ExamplesFile, Stats as StatsFile } from "@/lib/types";
 import examplesJson from "@/data/examples.json";
 import statsJson from "@/data/stats.json";
@@ -30,7 +31,8 @@ export default function Home() {
 
       <main>
         <Ask examples={examples} />
-        <RegionChart regions={stats.outstanding_by_region} />
+        <RegionChart regions={stats.outstanding_by_region} endOfPeriod={stats.end_of_period} />
+        <Trust repoUrl={REPO_URL} />
         <DataPanel endOfPeriod={ds.end_of_period} />
       </main>
 

@@ -3,6 +3,7 @@
 import { expect, test, type Page, type Route } from "@playwright/test";
 import examples from "../src/data/examples.json";
 import stats from "../src/data/stats.json";
+import trust from "../src/data/trust.json";
 
 const [undisbursed, , fiscalYears] = examples.examples;
 
@@ -66,21 +67,109 @@ test("stat strip shows the numbers in stats.json (checked against pandas in test
   expect(usd(stats.approved_usd)).toBe("$984.7B");
   await expect(strip).toContainText("Snapshot Sep 30, 2026");
 
-  const bars = page.getByRole("figure", { name: "Outstanding by region" }).getByRole("listitem");
+  const figure = page.getByRole("figure", { name: "Outstanding by region" });
+  await expect(figure.locator("figcaption")).toHaveText("Outstanding by region As of Sep 30, 2026");
+  const bars = figure.getByRole("listitem");
   await expect(bars).toHaveCount(stats.outstanding_by_region.length);
   await expect(bars.locator(".name")).toHaveText(stats.outstanding_by_region.map((r) => r.label));
   await expect(bars.locator(".val")).toHaveText(stats.outstanding_by_region.map((r) => usd(r.usd)));
 });
 
-test("page order: headline, subtitle, stats, ask box, examples, region chart, data panel (390 and 1200 px)", async ({ page }) => {
+test("page order: headline, subtitle, stats, ask box, examples, region chart, trust, data panel (390 and 1200 px)", async ({ page }) => {
   await mockAsk(page, {});
   for (const width of [390, 1200]) {
     await page.setViewportSize({ width, height: 900 });
     await page.goto("/");
     const tops = await page.evaluate(() =>
-      ["h1", ".lede", ".stats", "form.ask", ".examples-block", ".region-chart", ".data-panel"]
+      ["h1", ".lede", ".stats", "form.ask", ".examples-block", ".region-chart", ".trust", ".data-panel"]
         .map((sel) => document.querySelector(sel)!.getBoundingClientRect().top));
     for (let i = 1; i < tops.length; i++) expect(tops[i]).toBeGreaterThan(tops[i - 1]);
+  }
+});
+
+test("trust section: three statements, every number from trust.json (checked against the repo by tests/test_trust.py)", async ({ page }) => {
+  await mockAsk(page, {});
+  await page.goto("/");
+  const section = page.getByRole("region", { name: "Why you can trust the answers" });
+  await expect(section.getByRole("term")).toHaveText(["Test results", "Guardrails", "Ambiguity"]);
+  await expect(section.getByRole("definition")).toHaveText([
+    "Dev set 20/20 correct; held-out set 9/10 as first scored. RESULTS.md",
+    "Read-only database; SQL checked before it runs; 1,000 rows, 10\u00a0s max. security.md",
+    "Asks instead of guessing when a question is ambiguous. Eval case D18",
+  ]);
+  const allowed = new Set([trust.dev.correct, trust.dev.questions, trust.heldout.correct_first_scored, trust.heldout.questions,
+    trust.row_limit, trust.timeout_s, Number(trust.clarify_case.id.replace(/\D/g, ""))]);
+  const numbers = ((await section.innerText()).match(/\d[\d,]*/g) ?? []).map((n) => Number(n.replace(/,/g, "")));
+  expect(numbers.length).toBe(7);
+  for (const n of numbers) expect(allowed.has(n)).toBe(true);
+
+  const repo = "https://github.com/KhaledAlrashi1/ibrd-loans-sql-agent/blob/main/";
+  await expect(section.getByRole("link")).toHaveText(["RESULTS.md", "security.md", "Eval case D18"]);
+  const hrefs = await section.getByRole("link").evaluateAll((as) => as.map((a) => a.getAttribute("href")));
+  const c = trust.clarify_case;
+  expect(hrefs).toEqual([repo + trust.results_doc, repo + trust.security_doc, `${repo}${c.file}#L${c.first_line}-L${c.last_line}`]);
+
+  // One line each at 1200 px.
+  await page.setViewportSize({ width: 1200, height: 900 });
+  for (const dd of await section.getByRole("definition").all()) {
+    const lines = await dd.evaluate((el) => Math.round(el.getBoundingClientRect().height / parseFloat(getComputedStyle(el).lineHeight)));
+    expect(lines).toBe(1);
+  }
+});
+
+test("examples: a tag and an arrow on each row; the arrow moves on hover", async ({ page }) => {
+  await mockAsk(page, {});
+  await page.setViewportSize({ width: 1200, height: 900 });
+  await page.goto("/");
+  const rows = page.locator(".examples button");
+  await expect(rows.locator(".ex-q")).toHaveText(examples.examples.map((e) => e.question));
+  await expect(rows.locator(".ex-tag")).toHaveText(["Ranking", "Region filter", "Trend chart", "Asks before guessing"]);
+  await expect(rows.locator("svg")).toHaveCount(4);
+  const arrow = rows.first().locator("svg");
+  await rows.first().hover();
+  await expect(arrow).toHaveCSS("transform", "matrix(1, 0, 0, 1, 2, 0)");
+  // Desktop: the tag sits on the question's line; 390 px: below it.
+  const sameLine = async () => rows.first().evaluate((b) => {
+    const q = b.querySelector(".ex-q")!.getBoundingClientRect(), t = b.querySelector(".ex-tag")!.getBoundingClientRect();
+    return t.top < q.bottom && t.left > q.right;
+  });
+  expect(await sameLine()).toBe(true);
+  await page.setViewportSize({ width: 390, height: 844 });
+  expect(await sameLine()).toBe(false);
+});
+
+test("data panel: every tag stays on one line (390 and 1200 px)", async ({ page }) => {
+  await mockAsk(page, {});
+  await page.goto("/");
+  for (const width of [390, 1200]) {
+    await page.setViewportSize({ width, height: 900 });
+    const heights = await page.locator(".data-panel .tags li").evaluateAll((lis) =>
+      lis.map((li) => li.getBoundingClientRect().height / parseFloat(getComputedStyle(li).lineHeight)));
+    for (const h of heights) expect(Math.round(h)).toBe(1);
+  }
+});
+
+test("link preview: Open Graph and Twitter tags, a 1200x630 image, icons", async ({ page, request }) => {
+  await mockAsk(page, {});
+  await page.goto("/");
+  const meta = (sel: string) => page.locator(sel).first().getAttribute("content");
+  expect(await meta('meta[property="og:title"]')).toBe("Ask the IBRD loan book");
+  expect(await meta('meta[name="twitter:card"]')).toBe("summary_large_image");
+  expect(await meta('meta[property="og:description"]')).toBe(await meta('meta[name="description"]'));
+  expect(await meta('meta[property="og:image:width"]')).toBe("1200");
+  expect(await meta('meta[property="og:image:height"]')).toBe("630");
+  for (const sel of ['meta[property="og:image"]', 'meta[name="twitter:image"]']) {
+    const path = new URL((await meta(sel))!).pathname;
+    const res = await request.get(path);
+    expect(res.status()).toBe(200);
+    expect(res.headers()["content-type"]).toBe("image/png");
+    const png = await res.body();
+    expect([png.readUInt32BE(16), png.readUInt32BE(20)]).toEqual([1200, 630]);  // IHDR width, height
+  }
+  for (const rel of ["icon", "apple-touch-icon"]) {
+    for (const href of await page.locator(`link[rel="${rel}"]`).evaluateAll((ls) => ls.map((l) => l.getAttribute("href")!))) {
+      expect((await request.get(href)).status()).toBe(200);
+    }
   }
 });
 
@@ -190,6 +279,9 @@ test("line chart example", async ({ page }) => {
   await expect(svg.getByText("FY2020")).toBeVisible();
   await expect(page.getByRole("article").getByRole("tab", { name: "Chart" })).toHaveAttribute("aria-selected", "true");
   expect(fiscalYears.display_rows[0][1]).toBe("$26.86B");
+  // Its assumption says FY2027 is *not* in the range: no "Partial year" callout.
+  expect(fiscalYears.assumptions.some((a) => /partial/i.test(a))).toBe(true);
+  await expect(page.getByRole("note")).toHaveCount(0);
 });
 
 test("clarifying example: instant, no request, model text unchanged, fixed follow-ups", async ({ page }) => {
