@@ -7,7 +7,7 @@ import type { Notice } from "@/lib/types";
 import { waitText } from "@/lib/format";
 import { IconAlert, IconClock, IconRetry } from "./icons";
 
-export const OFFLINE = "Couldn’t reach the server. Check your connection and try again.";
+export const OFFLINE = "Check your connection.";
 
 export function NoticeCard({ notice, onRetry }: { notice: Notice | { status: "offline"; message: string }; onRetry: () => void }) {
   if (notice.status === "limited") return <Limited notice={notice as Notice} />;
@@ -16,7 +16,7 @@ export function NoticeCard({ notice, onRetry }: { notice: Notice | { status: "of
   return (
     <article className="card result" aria-labelledby="result-heading">
       <h2 id="result-heading" className="state-head neutral"><IconAlert /> {title}</h2>
-      {body !== `${title}.` && <p className="state-help">{body}</p>}
+      {body !== `${title}.` && body !== title && <p className="state-help">{body}</p>}
       <button type="button" className="btn-quiet" onClick={onRetry}><IconRetry /> Try again</button>
     </article>
   );
@@ -34,9 +34,9 @@ function Limited({ notice }: { notice: Notice }) {
     <article className="card result" aria-labelledby="result-heading">
       <h2 id="result-heading" className="state-head neutral"><IconClock /> {notice.message}</h2>
       {notice.scope === "daily" ? (
-        <p className="state-help">Live questions resume at midnight UTC. The examples and repeated questions still work.</p>
+        <p className="state-help">Live questions resume at midnight UTC. Examples and repeat questions still work.</p>
       ) : left > 0 ? (
-        <p className="state-help">Try again in <span className="tabular">{waitText(left)}</span>. The examples and repeated questions still work.</p>
+        <p className="state-help">Try again in <span className="tabular">{waitText(left)}</span>. Examples and repeat questions still work.</p>
       ) : (
         <p className="state-help">You can ask again now.</p>
       )}

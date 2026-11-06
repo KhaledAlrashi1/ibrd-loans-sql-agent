@@ -1,16 +1,16 @@
 import type { Metadata, Viewport } from "next";
-import { Inter, Source_Serif_4 } from "next/font/google";
+import { Source_Sans_3, Source_Serif_4 } from "next/font/google";
 import "./globals.css";
 
 // Self-hosted at build time by next/font: the browser never calls Google.
-const sans = Inter({ subsets: ["latin"], variable: "--font-sans", display: "swap" });
+const sans = Source_Sans_3({ subsets: ["latin"], variable: "--font-sans", display: "swap" });
 const serif = Source_Serif_4({ subsets: ["latin"], variable: "--font-serif", display: "swap" });
 
 export const metadata: Metadata = {
   title: "Ask the IBRD loan book",
   description:
-    "Ask a plain-English question about IBRD loans. An AI model writes the SQL, the app checks it and runs it on " +
-    "the official World Bank snapshot, and you see the answer, the SQL and every assumption.",
+    "Ask about IBRD loans in plain English. An AI writes the SQL, the app checks and runs it on the official " +
+    "World Bank snapshot, and you see the SQL and every assumption.",
 };
 
 export const viewport: Viewport = {

@@ -78,6 +78,7 @@ Needs Python 3.12, [uv](https://docs.astral.sh/uv/), Node 22+ and an Anthropic A
 uv venv --python 3.12 .venv && source .venv/bin/activate
 uv pip install -r requirements-dev.txt -r server/requirements.txt
 python scripts/build_db.py                 # CSV -> DuckDB in the temp dir; fails loudly if a check fails
+python scripts/build_stats.py              # the page's headline numbers -> web/src/data/stats.json
 pytest -q                                  # offline tests: guardrails, executor limits, API, scoring
 python scripts/run_eval.py --split dev     # live: 20 questions, about $0.15
 

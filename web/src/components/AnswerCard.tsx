@@ -1,66 +1,79 @@
 "use client";
 
 // One card per result (docs/v2-plan.md 5.5): answer, single value, empty, clarify, refuse, error.
-// Every card that ran SQL shows its assumptions and the SQL; status colours always come with an icon and text.
+// An answer leads with the number or the chart/table; assumptions and SQL are one click away, closed on every
+// new card. Status colours always come with an icon and text.
 
-import { useRef, useState } from "react";
+import { useId, useRef, useState } from "react";
 import type { Answer } from "@/lib/types";
-import { exactValue, isYearColumn, longDate, seconds } from "@/lib/format";
+import { exactValue, isYearColumn, seconds } from "@/lib/format";
 import { BarChart, barsFit } from "./BarChart";
 import { LineChart } from "./LineChart";
 import { ResultTable } from "./ResultTable";
 import { SqlBlock } from "./SqlBlock";
-import { IconAlert, IconBlock, IconCalendar, IconQuestion, IconSearchOff } from "./icons";
+import { IconAlert, IconBlock, IconCalendar, IconChevron, IconQuestion, IconSearchOff } from "./icons";
 
 const UNRELIABLE = "I couldn't answer that reliably.";
 const PARTIAL = /\bpartial(ly)?\b/i;
 const IDENT = /([A-Za-z0-9]+(?:_[A-Za-z0-9]+)+)/;  // snake_case tokens, e.g. borrowers_obligation_usd
-const nbsp = (s: string) => s.replace(/ /g, "\u00a0");  // keeps "Nov 6, 2026" on one line
+
+// Fixed follow-ups on a clarify card, each checked on the live agent to return an answer (Nov 6, 2026).
+export const FOLLOW_UPS = [
+  "Which countries owe the most?",
+  "How much was approved each fiscal year?",
+  "How many loans are in each status?",
+];
 
 /** Display only: the text is unchanged, column names are set in monospace. */
 function WithCode({ text }: { text: string }) {
   return <>{text.split(IDENT).map((part, i) => (i % 2 ? <code key={i} className="ident" translate="no">{part}</code> : part))}</>;
 }
 
-export function AnswerCard({ data, computedAt }: { data: Answer; computedAt: string }) {
+export function AnswerCard({ data, onAsk }: { data: Answer; onAsk: (question: string) => void }) {
   return (
     <article className="card result" aria-labelledby="result-heading">
-      <Meta data={data} computedAt={computedAt} />
-      <p className="q">{data.question}</p>
-      <Body data={data} />
+      <Body data={data} onAsk={onAsk} />
     </article>
   );
 }
 
-function Meta({ data, computedAt }: { data: Answer; computedAt: string }) {
-  const pill = { live: "Live", cache: "Cached answer", example: "Cached example" }[data.source];
-  const timing = data.source === "live" ? `Answered in ${seconds(data.latency_ms)}`
-    : data.source === "cache" ? `${seconds(data.latency_ms)} · first answered in ${seconds(data.answered_ms)}`
-    : `Computed by the live agent on ${nbsp(longDate(computedAt))} in\u00a0${seconds(data.answered_ms)}`;
+function Meta({ data }: { data: Answer }) {
+  const ms = data.source === "live" ? data.latency_ms : data.answered_ms;
   return (
-    <div className="meta">
-      <span className={`pill ${data.source}`}>{pill}</span>
-      <span>{timing}</span>
-    </div>
+    <p className="meta">
+      <span className={`source ${data.source}`}>{data.source === "live" ? "Live" : "Cached"}</span>
+      <span aria-hidden="true">·</span>
+      <span>{seconds(ms)}</span>
+      {data.attempts === 2 && <><span aria-hidden="true">·</span><span>retried once</span></>}
+    </p>
   );
 }
 
-function Body({ data }: { data: Answer }) {
+function Body({ data, onAsk }: { data: Answer; onAsk: (question: string) => void }) {
   switch (data.status) {
     case "clarify":
       return (
         <>
-          <h2 id="result-heading" className="state-head clarify"><IconQuestion /> I need a bit more detail</h2>
+          <h2 id="result-heading" className="state-head clarify"><IconQuestion /> Which do you mean?</h2>
           <p className="state-body"><WithCode text={data.summary} /></p>
-          <p className="state-help">Add that detail to your question above and ask again. Nothing was run.</p>
+          <div className="follow">
+            <h3 className="follow-head">Or ask</h3>
+            <ul>
+              {FOLLOW_UPS.map((q) => (
+                <li key={q}><button type="button" className="chip" onClick={() => onAsk(q)}>{q}</button></li>
+              ))}
+            </ul>
+          </div>
+          <Meta data={data} />
         </>
       );
     case "refuse":
       return (
         <>
-          <h2 id="result-heading" className="state-head neutral"><IconBlock /> I can&rsquo;t answer that from this data</h2>
+          <h2 id="result-heading" className="state-head neutral"><IconBlock /> Can&rsquo;t answer that from this data</h2>
           <p className="state-body"><WithCode text={data.summary} /></p>
-          <p className="state-help">Nothing was run. Try one of the examples, or ask about IBRD loans and guarantees.</p>
+          <p className="state-help">Nothing was run.</p>
+          <Meta data={data} />
         </>
       );
     case "error":
@@ -75,7 +88,6 @@ function Body({ data }: { data: Answer }) {
       return (
         <>
           <h2 id="result-heading" className="state-head neutral"><IconSearchOff /> No matching rows</h2>
-          <p className="state-help">The query ran and returned nothing. Here is what was searched.</p>
           <Details data={data} sqlTitle="SQL" />
         </>
       );
@@ -89,22 +101,21 @@ function AnswerBody({ data }: { data: Answer }) {
   const partial = data.assumptions.find((a) => PARTIAL.test(a));
   return (
     <>
+      <h2 id="result-heading" className="answer-q">{data.question}</h2>
       {single ? (
-        <div className="hero">
-          <p className="hero-n" title={exactValue(data.rows[0][0], data.columns[0].unit, isYearColumn(data.columns[0].name))}>
-            {data.display_rows[0][0] || "—"}
-          </p>
-          <p className="hero-what">{data.columns[0].label}</p>
-        </div>
-      ) : null}
-      <h2 id="result-heading" className={single ? "summary summary-sm" : "summary"}>{data.summary}</h2>
+        <p className="hero-n" title={exactValue(data.rows[0][0], data.columns[0].unit, isYearColumn(data.columns[0].name))}>
+          {data.display_rows[0][0] || "—"}
+        </p>
+      ) : (
+        <Views data={data} />
+      )}
+      <p className={single ? "summary summary-hero" : "summary"}>{data.summary}</p>
       {partial && (
         <div className="callout" role="note">
           <IconCalendar />
           <p><strong>Partial year.</strong> {partial}</p>
         </div>
       )}
-      {single ? null : <Views data={data} />}
       <Details data={data} sqlTitle="SQL" />
     </>
   );
@@ -145,27 +156,39 @@ function Views({ data }: { data: Answer }) {
   );
 }
 
+/** "Assumptions (n)" and "SQL" toggles, both closed by default; the open state lives only in this card. */
 function Details({ data, sqlTitle }: { data: Answer; sqlTitle: string }) {
-  const n = data.rows.length;
+  const id = useId();
+  const [open, setOpen] = useState({ assumptions: false, sql: false });
+  const n = data.assumptions.length;
+  const toggle = (k: keyof typeof open) => setOpen((o) => ({ ...o, [k]: !o[k] }));
   return (
-    <>
-      {data.assumptions.length > 0 && (
-        <section className="section" aria-labelledby="assumptions-heading">
-          <h3 id="assumptions-heading" className="section-head">Assumptions</h3>
-          <ul className="assumptions">{data.assumptions.map((a) => <li key={a}><WithCode text={a} /></li>)}</ul>
-        </section>
+    <div className="details">
+      <div className="details-bar">
+        {n > 0 && (
+          <button type="button" className="disclose" aria-expanded={open.assumptions} aria-controls={`${id}-a`}
+            onClick={() => toggle("assumptions")}>
+            Assumptions ({n}) <IconChevron size={14} />
+          </button>
+        )}
+        {data.sql && (
+          <button type="button" className="disclose" aria-expanded={open.sql} aria-controls={`${id}-s`}
+            onClick={() => toggle("sql")}>
+            {sqlTitle} <IconChevron size={14} />
+          </button>
+        )}
+        <Meta data={data} />
+      </div>
+      {n > 0 && (
+        <ul id={`${id}-a`} className="assumptions" hidden={!open.assumptions}>
+          {data.assumptions.map((a) => <li key={a}><WithCode text={a} /></li>)}
+        </ul>
       )}
       {data.sql && (
-        <section className="section">
-          <SqlBlock sql={data.sql} title={sqlTitle} />
-        </section>
+        <div id={`${id}-s`} hidden={!open.sql}>
+          <SqlBlock sql={data.sql} />
+        </div>
       )}
-      <p className="foot-meta">
-        <span>{data.attempts === 1 ? "1 attempt" : `${data.attempts} attempts`}</span>
-        {data.status !== "error" && <span>{n === 1 ? "1 row" : `${n.toLocaleString("en-US")} rows`}</span>}
-        {data.attempts === 2 && data.status !== "error" && <span>Retried once after the first attempt failed.</span>}
-        <span>Data as of {longDate(data.data_as_of)}</span>
-      </p>
-    </>
+    </div>
   );
 }

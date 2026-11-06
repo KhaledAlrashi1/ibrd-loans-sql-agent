@@ -2,6 +2,7 @@
 
 import { expect, test, type Page, type Route } from "@playwright/test";
 import examples from "../src/data/examples.json";
+import stats from "../src/data/stats.json";
 
 const [undisbursed, , fiscalYears] = examples.examples;
 
@@ -31,20 +32,68 @@ async function noHorizontalScroll(page: Page) {
   expect(scroll).toBeLessThanOrEqual(client);
 }
 
-test("idle page: title, examples, attribution, warm-up ping", async ({ page }) => {
+test("idle page: title, stats, examples, data panel, attribution, warm-up ping", async ({ page }) => {
   const health = page.waitForRequest("**/api/health");
   await mockAsk(page, {});
   await page.goto("/");
   await health;
   await expect(page.getByRole("heading", { level: 1 })).toHaveText("Ask the IBRD loan book");
-  await expect(page.getByRole("button", { name: /Cached · instant$/ })).toHaveCount(4);
-  const panel = page.getByRole("region", { name: "What’s in this data" });
-  await expect(panel.getByRole("term")).toHaveText(["One row", "Main fields", "Answers well", "Can’t answer", "Defaults"]);
-  await expect(panel).toContainText("9,538 rows, a snapshot as of Sep 30, 2026.");
-  await expect(page.getByText("Independent project, not affiliated with the World Bank.")).toBeVisible();
+  await expect(page.getByRole("heading", { name: "Try an example · instant" })).toBeVisible();
+  await expect(page.locator(".examples button")).toHaveCount(4);
+  await expect(page.getByText(/Cached · instant|Press Enter|0 \/ 300/)).toHaveCount(0);  // no per-row tags, no UI-describing hints
+  const panel = page.getByRole("region", { name: "What the data covers" });
+  await expect(panel.getByRole("heading")).toHaveText(["Ask about", "Not in this data"]);
+  await expect(panel.getByRole("list").first().getByRole("listitem"))
+    .toHaveText(["Countries", "Regions", "Fiscal years", "Loan status", "Loan type", "Approved, disbursed, owed"]);
+  await expect(panel.getByRole("list").last().getByRole("listitem"))
+    .toHaveText(["Sectors", "Project results", "GDP", "IDA lending", "After Sep 30, 2026"]);
+  await expect(page.getByText("Defaults")).toHaveCount(0);
+  await expect(page.getByText(/Snapshot Sep 30, 2026/)).toHaveCount(1);
+  await expect(page.getByText("Not affiliated with the World Bank.", { exact: false })).toBeVisible();
   await expect(page.getByRole("link", { name: "CC BY 4.0" })).toHaveAttribute("href", /creativecommons\.org\/licenses\/by\/4\.0/);
   await expect(page.getByRole("link", { name: "Code on GitHub" })).toBeVisible();
   await expect(page.getByText(/World Bank logo/i)).toHaveCount(0);
+});
+
+test("stat strip shows the numbers in stats.json (checked against pandas in tests/test_stats.py)", async ({ page }) => {
+  await mockAsk(page, {});
+  await page.goto("/");
+  const strip = page.getByRole("region", { name: "The loan book" });
+  const usd = (v: number) => new Intl.NumberFormat("en-US", { style: "currency", currency: "USD", notation: "compact", maximumFractionDigits: 1 }).format(v);
+  await expect(strip.getByRole("term")).toHaveText(["Outstanding", `Approved since FY${stats.first_fy}`, "Countries", "Loans"]);
+  await expect(strip.getByRole("definition")).toHaveText([usd(stats.outstanding_usd), usd(stats.approved_usd), "143", "9,425"]);
+  expect(usd(stats.outstanding_usd)).toBe("$296.7B");
+  expect(usd(stats.approved_usd)).toBe("$984.7B");
+  await expect(strip).toContainText("Snapshot Sep 30, 2026");
+
+  const bars = page.getByRole("figure", { name: "Outstanding by region" }).getByRole("listitem");
+  await expect(bars).toHaveCount(stats.outstanding_by_region.length);
+  await expect(bars.locator(".name")).toHaveText(stats.outstanding_by_region.map((r) => r.label));
+  await expect(bars.locator(".val")).toHaveText(stats.outstanding_by_region.map((r) => usd(r.usd)));
+});
+
+test("page order: headline, subtitle, stats, ask box, examples, region chart, data panel (390 and 1200 px)", async ({ page }) => {
+  await mockAsk(page, {});
+  for (const width of [390, 1200]) {
+    await page.setViewportSize({ width, height: 900 });
+    await page.goto("/");
+    const tops = await page.evaluate(() =>
+      ["h1", ".lede", ".stats", "form.ask", ".examples-block", ".region-chart", ".data-panel"]
+        .map((sel) => document.querySelector(sel)!.getBoundingClientRect().top));
+    for (let i = 1; i < tops.length; i++) expect(tops[i]).toBeGreaterThan(tops[i - 1]);
+  }
+});
+
+test("tabular figures in the stat strip, the chart values and answer tables", async ({ page }) => {
+  await mockAsk(page, {});
+  await page.goto("/");
+  const numeric = (sel: string) => page.locator(sel).first().evaluate((el) => getComputedStyle(el).fontVariantNumeric);
+  expect(await numeric(".stats dd")).toBe("tabular-nums");
+  expect(await numeric(".region-chart .val")).toBe("tabular-nums");
+  await page.getByRole("button", { name: /Which 10 countries have the most undisbursed/ }).click();
+  await page.getByRole("article").getByRole("tab", { name: "Table" }).click();
+  expect(await numeric("article td")).toBe("tabular-nums");
+  expect(await numeric("article td.num")).toBe("tabular-nums");
 });
 
 test("cold server: visible waking state, examples still instant, live question waits with a waking step", async ({ page }) => {
@@ -58,19 +107,19 @@ test("cold server: visible waking state, examples still instant, live question w
     await r.fulfill({ json: live({ question: "Top undisbursed?" }) });
   });
   await page.goto("/");
-  const status = page.getByRole("status").filter({ hasText: "Waking up the server (~15 s)" });
+  const status = page.getByRole("status").filter({ hasText: "Starting the server, about 15 s" });
   await expect(status).toBeVisible();
 
   await page.getByRole("button", { name: /Which 10 countries have the most undisbursed/ }).click();
-  await expect(page.getByRole("article").getByText("Cached example")).toBeVisible();
+  await expect(page.getByRole("article").locator(".source")).toHaveText("Cached");
   expect(calls).toEqual([]);
 
   await askLive(page, "Top undisbursed?");
-  await expect(page.locator(".step.active")).toHaveText("Waking up the server (~15 s)");
+  await expect(page.locator(".step.active")).toHaveText(/^Starting the server, about 15\s+s$/);
   await expect(page.locator(".step.todo")).toHaveCount(4);
   wake();
   await expect(status).toHaveCount(0);
-  await expect(page.getByRole("article").getByText("Live", { exact: true })).toBeVisible();
+  await expect(page.getByRole("article").locator(".source")).toHaveText("Live");
   expect(calls).toEqual(["Top undisbursed?"]);
 });
 
@@ -78,15 +127,20 @@ test("warm server: no waking state", async ({ page }) => {
   await mockAsk(page, {});
   await page.goto("/");
   await page.waitForTimeout(1200);
-  await expect(page.getByText("Waking up the server")).toHaveCount(0);
+  await expect(page.getByText("Starting the server")).toHaveCount(0);
 });
 
-test("examples render instantly with no request, chart and table", async ({ page }) => {
+test("examples render instantly with no request: question, chart first, then collapsed assumptions and SQL", async ({ page }) => {
   const calls = await mockAsk(page, {});
   await page.goto("/");
   await page.getByRole("button", { name: /Which 10 countries have the most undisbursed/ }).click();
   const card = page.getByRole("article");
-  await expect(card.getByText("Cached example")).toBeVisible();
+  await expect(card.locator(".source")).toHaveText("Cached");
+  await expect(card.getByRole("heading", { level: 2 })).toHaveText(undisbursed.question);
+  // The chart comes before the summary sentence.
+  const chartFirst = await card.evaluate((el) =>
+    !!(el.querySelector(".views")!.compareDocumentPosition(el.querySelector(".summary")!) & Node.DOCUMENT_POSITION_FOLLOWING));
+  expect(chartFirst).toBe(true);
   await expect(card.locator(".bars li").first()).toContainText("Turkiye");
   await expect(card.locator(".bars li").first()).toContainText("$14.85B");
   await expect(card.getByText("Undisbursed (USD), by country / economy")).toBeVisible();
@@ -94,16 +148,37 @@ test("examples render instantly with no request, chart and table", async ({ page
   await card.getByRole("tab", { name: "Table" }).click();
   await expect(card.getByRole("columnheader", { name: "Undisbursed (USD)" })).toBeVisible();
   await expect(card.getByRole("row").nth(1)).toContainText("$14.85B");
-  await card.getByRole("switch", { name: "Show exact values" }).click();
+  await card.getByRole("switch", { name: "Exact values" }).click();
   await expect(card.getByRole("row").nth(1)).toContainText("$14,851,719,396.98");
   await card.getByRole("tab", { name: "Chart" }).click();
   await card.getByRole("tab", { name: "Chart" }).press("ArrowRight");
   await expect(card.getByRole("tab", { name: "Table" })).toHaveAttribute("aria-selected", "true");
 
-  await expect(card.getByText("Assumptions")).toBeVisible();
-  await card.getByText("SQL", { exact: true }).click();
+  const assumptions = card.getByRole("button", { name: `Assumptions (${undisbursed.assumptions.length})` });
+  const sql = card.getByRole("button", { name: "SQL", exact: true });
+  await expect(assumptions).toHaveAttribute("aria-expanded", "false");
+  await expect(sql).toHaveAttribute("aria-expanded", "false");
+  await expect(card.locator(".assumptions")).toBeHidden();
+  await expect(card.locator("pre.sql")).toBeHidden();
+  await assumptions.click();
+  await expect(card.locator(".assumptions li")).toHaveCount(undisbursed.assumptions.length);
+  await sql.click();
   await expect(card.locator("pre.sql")).toContainText("SELECT");
+  await expect(sql).toHaveAttribute("aria-expanded", "true");
+  await sql.click();
+  await expect(card.locator("pre.sql")).toBeHidden();
   expect(calls).toEqual([]);
+});
+
+test("assumptions and SQL start closed on every new answer", async ({ page }) => {
+  await mockAsk(page, {});
+  await page.goto("/");
+  await page.getByRole("button", { name: /Which 10 countries have the most undisbursed/ }).click();
+  await page.getByRole("article").getByRole("button", { name: "SQL", exact: true }).click();
+  await expect(page.locator("pre.sql")).toBeVisible();
+  await page.getByRole("button", { name: /Middle East and North Africa/ }).click();
+  await expect(page.getByRole("article").getByRole("button", { name: "SQL", exact: true })).toHaveAttribute("aria-expanded", "false");
+  await expect(page.locator("pre.sql")).toBeHidden();
 });
 
 test("line chart example", async ({ page }) => {
@@ -117,17 +192,19 @@ test("line chart example", async ({ page }) => {
   expect(fiscalYears.display_rows[0][1]).toBe("$26.86B");
 });
 
-test("clarifying example: instant, no request, nothing run", async ({ page }) => {
+test("clarifying example: instant, no request, model text unchanged, fixed follow-ups", async ({ page }) => {
   const calls = await mockAsk(page, {});
   await page.goto("/");
   await page.getByRole("button", { name: /Which loans are active\?/ }).click();
   await expect(page.getByRole("button", { name: /Which loans are active\?/ })).toHaveAttribute("aria-current", "true");
   await expect(page.locator(".examples [aria-current]")).toHaveCount(1);
   const card = page.getByRole("article");
-  await expect(card.getByText("Cached example")).toBeVisible();
-  await expect(card.getByRole("heading", { name: "I need a bit more detail" })).toBeVisible();
-  await expect(card.getByText("Nothing was run.")).toBeVisible();
+  await expect(card.locator(".source")).toHaveText("Cached");
+  await expect(card.getByRole("heading", { name: "Which do you mean?" })).toBeVisible();
+  await expect(card.getByText(/Nothing was run|Add that detail/)).toHaveCount(0);
   await expect(card.locator("pre.sql")).toHaveCount(0);
+  await expect(card.locator(".follow button")).toHaveText([
+    "Which countries owe the most?", "How much was approved each fiscal year?", "How many loans are in each status?"]);
   expect(calls).toEqual([]);
 
   // Body text size, not the serif hero; column names in monospace; the text itself unchanged.
@@ -157,12 +234,12 @@ test("live answer: progress steps and skeleton, then the answer with latency", a
   await page.goto("/");
   await askLive(page, "Top undisbursed?");
   await expect(page.getByRole("button", { name: "Asking…" })).toBeDisabled();
-  await expect(page.getByText("Understanding the question")).toBeVisible();
+  await expect(page.getByText("Reading the question")).toBeVisible();
   await expect(page.locator(".step.active")).toHaveText("Writing SQL");
   await expect(page.locator(".skeleton")).toBeVisible();
   const card = page.getByRole("article");
-  await expect(card.getByText("Live", { exact: true })).toBeVisible();
-  await expect(card.getByText("Answered in 3.1\u00a0s")).toBeVisible();
+  await expect(card.locator(".source")).toHaveText("Live");
+  await expect(card.locator(".meta")).toHaveText(/^Live\s*·\s*3\.1\u00a0s$/);
   expect(calls).toEqual(["Top undisbursed?"]);
 });
 
@@ -175,30 +252,38 @@ test("single value: hero number and partial-year caveat", async ({ page }) => {
   await page.goto("/");
   await askLive(page, "How many IBRD loans were approved in fiscal year 2027?");
   await expect(page.locator(".hero-n")).toHaveText("44");
-  await expect(page.locator(".hero-what")).toHaveText("Loan count");
+  await expect(page.locator(".summary")).toHaveText("Number of IBRD loans approved in FY2027.");
   await expect(page.getByRole("note")).toContainText("Partial year.");
 });
 
-test("clarify keeps the question and says nothing was run", async ({ page }) => {
-  await mockAsk(page, live({ status: "clarify", summary: "Do you mean disbursing loans or loans with a balance?", sql: "", assumptions: [], ...noRows }));
+test("clarify keeps the question; a follow-up fills in the box and asks it", async ({ page }) => {
+  const calls = await mockAsk(page, live({ status: "clarify", summary: "Do you mean disbursing loans or loans with a balance?", sql: "", assumptions: [], ...noRows }));
   await page.goto("/");
   await askLive(page, "Which loans are active?");
-  await expect(page.getByRole("heading", { name: "I need a bit more detail" })).toBeVisible();
-  await expect(page.getByText("Nothing was run.")).toBeVisible();
+  await expect(page.getByRole("heading", { name: "Which do you mean?" })).toBeVisible();
+  await expect(page.locator(".state-body")).toHaveText("Do you mean disbursing loans or loans with a balance?");
   await expect(page.getByLabel("Your question about IBRD loans")).toHaveValue("Which loans are active?");
   await expect(page.locator("pre.sql")).toHaveCount(0);
+
+  await page.unrouteAll();
+  const next = await mockAsk(page, live({ question: "Which countries owe the most?" }));
+  await page.getByRole("button", { name: "Which countries owe the most?" }).click();
+  await expect(page.getByLabel("Your question about IBRD loans")).toHaveValue("Which countries owe the most?");
+  await expect(page.getByRole("article").getByRole("heading", { level: 2 })).toHaveText("Which countries owe the most?");
+  expect(calls).toEqual(["Which loans are active?"]);
+  expect(next).toEqual(["Which countries owe the most?"]);
 });
 
 test("refuse is neutral and shows no SQL", async ({ page }) => {
   await mockAsk(page, live({ status: "refuse", summary: "I can only read the loans table.", sql: "", assumptions: [], ...noRows }));
   await page.goto("/");
   await askLive(page, "Delete all rows from the loans table");
-  const head = page.getByRole("heading", { name: "I can’t answer that from this data" });
+  const head = page.getByRole("heading", { name: "Can’t answer that from this data" });
   await expect(head).toBeVisible();
   await expect(head).toHaveClass(/neutral/);
   await expect(page.locator(".state-body")).toHaveCSS("font-size", "16px");
-  await expect(page.getByText("Nothing was run.", { exact: false })).toBeVisible();
-  await expect(page.getByText("SQL", { exact: true })).toHaveCount(0);
+  await expect(page.getByText("Nothing was run.", { exact: true })).toBeVisible();
+  await expect(page.getByRole("button", { name: /SQL|Assumptions/ })).toHaveCount(0);
 });
 
 test("error shows the reason and the SQL attempted", async ({ page }) => {
@@ -207,7 +292,9 @@ test("error shows the reason and the SQL attempted", async ({ page }) => {
   await askLive(page, "Something odd");
   await expect(page.getByRole("heading", { name: "I couldn’t answer that reliably" })).toBeVisible();
   await expect(page.getByText("The query failed: Binder Error.")).toBeVisible();
-  await expect(page.getByText("SQL attempted")).toBeVisible();
+  await page.getByRole("button", { name: "SQL attempted" }).click();
+  await expect(page.locator("pre.sql")).toHaveText("SELECT nope");
+  await expect(page.locator(".meta")).toContainText("retried once");
 });
 
 test("empty result", async ({ page }) => {
@@ -215,7 +302,7 @@ test("empty result", async ({ page }) => {
   await page.goto("/");
   await askLive(page, "Loans to Atlantis?");
   await expect(page.getByRole("heading", { name: "No matching rows" })).toBeVisible();
-  await expect(page.getByText("Assumptions")).toBeVisible();
+  await expect(page.getByRole("button", { name: /^Assumptions \(\d+\)/ })).toBeVisible();
 });
 
 const PER_IP = "Live questions from your network are limited to 20 per hour.";
@@ -234,7 +321,7 @@ test("rate limited per network: wait in minutes, examples still work", async ({ 
   await page.goto("/");
   await askLive(page, "one more");
   await expect(page.getByRole("heading", { name: PER_IP })).toBeVisible();
-  await expect(page.locator(".state-help")).toHaveText("Try again in 25\u00a0min. The examples and repeated questions still work.");
+  await expect(page.locator(".state-help")).toHaveText("Try again in 25\u00a0min. Examples and repeat questions still work.");
 });
 
 test("daily limit: says the demo is at its limit, not the visitor", async ({ page }) => {
@@ -243,7 +330,7 @@ test("daily limit: says the demo is at its limit, not the visitor", async ({ pag
   await page.goto("/");
   await askLive(page, "one more");
   await expect(page.getByRole("heading", { name: heading })).toBeVisible();
-  await expect(page.locator(".state-help")).toHaveText("Live questions resume at midnight UTC. The examples and repeated questions still work.");
+  await expect(page.locator(".state-help")).toHaveText("Live questions resume at midnight UTC. Examples and repeat questions still work.");
   await expect(page.getByText(/your network|you've asked/i)).toHaveCount(0);
 });
 
@@ -269,6 +356,8 @@ test("empty and over-long input show an inline message and send nothing", async 
   await askLive(page, "x".repeat(301));
   await expect(page.locator("#q-problem")).toHaveText("Please keep your question under 300 characters.");
   await expect(page.getByText("301 / 300")).toBeVisible();
+  await page.getByLabel("Your question about IBRD loans").fill("short");
+  await expect(page.locator(".count")).toHaveCount(0);
   expect(calls).toEqual([]);
 });
 

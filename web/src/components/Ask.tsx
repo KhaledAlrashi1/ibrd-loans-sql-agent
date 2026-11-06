@@ -14,6 +14,7 @@ const WRITING_AFTER_MS = 700;   // "Writing SQL" once the request has clearly re
 const TICK_MS = 150;            // each confirmed step, once the response is in
 const TIMEOUT_MS = 70_000;      // above the API's 60 s maximum duration
 const WAKING_AFTER_MS = 800;    // a warm /api/health answers well within this, so a warm page never shows "waking"
+const COUNT_FROM = 250;         // the character count appears only near the limit
 
 /** "checking" until /api/health answers or is slow, "waking" while a cold instance starts, then "ready". */
 type Server = "checking" | "waking" | "ready";
@@ -25,8 +26,8 @@ type View =
   | { kind: "notice"; notice: Notice | { status: "offline"; message: string }; question: string };
 
 const ANNOUNCE: Record<string, string> = {
-  answer: "Answer ready.", empty: "No matching rows.", clarify: "The agent needs more detail.",
-  refuse: "The agent can't answer that from this data.", error: "The agent couldn't answer that reliably.",
+  answer: "Answer ready.", empty: "No matching rows.", clarify: "Which do you mean?",
+  refuse: "Can't answer that from this data.", error: "The agent couldn't answer that reliably.",
   limited: "Rate limit reached.", unavailable: "The demo is unavailable.", offline: "Couldn't reach the server.",
 };
 
@@ -119,6 +120,12 @@ export function Ask({ examples }: { examples: ExamplesFile }) {
     show({ kind: "answer", data: res }, res.status);
   }
 
+  /** A follow-up from the clarify card: fill in the box and ask. */
+  function askNow(question: string) {
+    setText(question);
+    ask(question);
+  }
+
   function showExample(e: Answer) {
     run.current++;  // cancels a live question still in flight
     setText(e.question);
@@ -142,34 +149,32 @@ export function Ask({ examples }: { examples: ExamplesFile }) {
         <label htmlFor="q" className="sr-only">Your question about IBRD loans</label>
         <div className="ask-row">
           <input ref={input} id="q" name="q" type="text" autoComplete="off" spellCheck enterKeyHint="send"
-            placeholder="e.g. What does Chile owe?" value={text}
-            aria-invalid={problem ? true : undefined} aria-describedby="q-hint q-problem"
+            placeholder="What does Chile owe?" value={text}
+            aria-invalid={problem ? true : undefined} aria-describedby="q-problem"
             onChange={(e) => { setText(e.target.value); if (problem) setProblem(null); }} />
           <button className="btn" type="submit" disabled={loading} aria-disabled={loading}>
             {loading ? "Asking…" : "Ask"}
           </button>
         </div>
-        <div className="hint" id="q-hint">
-          <span className="hint-enter">Press Enter to ask</span>
-          <span className={over ? "count over" : "count"} aria-live={over ? "polite" : "off"}>
+        {count >= COUNT_FROM && (
+          <p className={over ? "count over" : "count"} aria-live={over ? "polite" : "off"}>
             {count} / {MAX_QUESTION_CHARS}
-          </span>
-        </div>
+          </p>
+        )}
         <p id="q-problem" className="problem" role="alert">{problem}</p>
         <p className="wake" role="status">
-          {server === "waking" && <><span className="wake-dot" aria-hidden="true" /><span>Waking up the server (~15&nbsp;s). The examples below work now.</span></>}
+          {server === "waking" && <><span className="wake-dot" aria-hidden="true" /><span>Starting the server, about 15&nbsp;s. Examples work now.</span></>}
         </p>
       </form>
 
       <section aria-labelledby="examples-heading" className="examples-block">
-        <h2 id="examples-heading" className="section-head">Try an example</h2>
+        <h2 id="examples-heading" className="section-head">Try an example · instant</h2>
         <ul className="examples">
           {examples.examples.map((e) => (
             <li key={e.question}>
               <button type="button" onClick={() => showExample(e)}
                 aria-current={view.kind === "answer" && view.data === e ? "true" : undefined}>
-                <span>{e.question}</span>
-                <span className="tag">Cached · instant</span>
+                {e.question}
               </button>
             </li>
           ))}
@@ -178,7 +183,7 @@ export function Ask({ examples }: { examples: ExamplesFile }) {
 
       <div ref={resultRef} className="result-area">
         {view.kind === "loading" && <Progress step={view.step} question={view.question} wake={!view.woke ? "none" : server === "ready" ? "done" : "active"} />}
-        {view.kind === "answer" && <AnswerCard key={`${view.data.question}-${view.data.source}`} data={view.data} computedAt={examples.computed_at} />}
+        {view.kind === "answer" && <AnswerCard key={`${view.data.question}-${view.data.source}`} data={view.data} onAsk={askNow} />}
         {view.kind === "notice" && <NoticeCard notice={view.notice} onRetry={() => ask(view.question)} />}
       </div>
       <p className="sr-only" aria-live="polite">{announce}</p>
