@@ -1,9 +1,9 @@
 {
- "computed_at": "2026-11-06T11:10:55+00:00",
- "git_commit": "ffe8964",
+ "computed_at": "2026-11-06T11:33:13+00:00",
+ "git_commit": "e75b9e7",
  "model": "claude-sonnet-5-5",
  "effort": "high",
- "cache_version": "3e855b589ed2",
+ "cache_version": "d54c6c1dba67",
  "dataset": {
   "name": "IBRD Statement of Loans and Guarantees - Latest Available Snapshot",
   "id": "DS00047",
@@ -15,7 +15,7 @@
   {
    "status": "answer",
    "question": "Which 10 countries have the most undisbursed IBRD loans?",
-   "summary": "Top 10 countries by total undisbursed amount on IBRD loans.",
+   "summary": "Top 10 countries by total undisbursed amount on IBRD loans (guarantees and regional entries excluded).",
    "columns": [
     {
      "name": "country",
@@ -118,26 +118,26 @@
     "y": "undisbursed_usd"
    },
    "assumptions": [
-    "'Most undisbursed' ranks by total undisbursed amount (undisbursed_amount_usd), not by number of loans.",
+    "'Most undisbursed' is ranked by total undisbursed amount (undisbursed_amount_usd), not by number of loans.",
     "Guarantees excluded (is_guarantee = FALSE).",
-    "Regional entries (Caribbean, Eastern and Southern Africa, Southern Africa, Western and Central Africa) excluded from the country ranking.",
-    "undisbursed_amount_usd is in US$ at End of Period exchange rates.",
-    "All loan statuses included; amounts summed per country."
+    "Regional entries (Caribbean, Eastern and Southern Africa, Southern Africa, Western and Central Africa) excluded because this is a country ranking.",
+    "Undisbursed amounts are in US$ at End of Period (2026-09-30) exchange rates.",
+    "Summed across all loan statuses; no other filters applied."
    ],
    "sql": "SELECT country, SUM(undisbursed_amount_usd) AS undisbursed_usd\nFROM ibrd_loans\nWHERE is_guarantee = FALSE AND is_regional_entry = FALSE\nGROUP BY country\nORDER BY undisbursed_usd DESC\nLIMIT 10",
    "truncated": false,
    "row_limit": 1000,
-   "answered_ms": 3500,
+   "answered_ms": 4210,
    "attempts": 1,
    "data_as_of": "2026-09-30",
    "source": "example",
-   "latency_ms": 3500,
+   "latency_ms": 4210,
    "retry_after_s": null
   },
   {
    "status": "answer",
-   "question": "Which 5 countries owe the most to the IBRD?",
-   "summary": "Top 5 countries by total outstanding borrower's obligation to the IBRD on loans.",
+   "question": "Which Middle East and North Africa countries owe the most to the IBRD?",
+   "summary": "Top countries in the Middle East and North Africa region by total outstanding balance owed to IBRD.",
    "columns": [
     {
      "name": "country",
@@ -145,81 +145,121 @@
      "unit": "plain"
     },
     {
-     "name": "total_owed_usd",
-     "label": "Total owed (USD)",
+     "name": "owed_usd",
+     "label": "Owed (USD)",
      "unit": "usd"
     }
    ],
    "rows": [
     [
-     "India",
-     23573624318.849995
+     "Morocco",
+     12623738622.909998
     ],
     [
-     "Indonesia",
-     22822215638.15
+     "Egypt, Arab Republic of",
+     12403854052.169998
     ],
     [
-     "Ukraine",
-     19477426850.7
+     "Jordan",
+     7068198659.830001
     ],
     [
-     "Philippines",
-     17153023419.73
+     "Tunisia",
+     4652601511.63
     ],
     [
-     "Colombia",
-     16575487974.05
+     "Pakistan",
+     3196340951.8599997
+    ],
+    [
+     "Iraq",
+     2411041667.0799994
+    ],
+    [
+     "Lebanon",
+     1171993433.6299999
+    ],
+    [
+     "Iran, Islamic Republic of",
+     111899898.77
+    ],
+    [
+     "Israel",
+     0.0
+    ],
+    [
+     "Malta",
+     0.0
     ]
    ],
    "display_rows": [
     [
-     "India",
-     "$23.57B"
+     "Morocco",
+     "$12.62B"
     ],
     [
-     "Indonesia",
-     "$22.82B"
+     "Egypt, Arab Republic of",
+     "$12.40B"
     ],
     [
-     "Ukraine",
-     "$19.48B"
+     "Jordan",
+     "$7.07B"
     ],
     [
-     "Philippines",
-     "$17.15B"
+     "Tunisia",
+     "$4.65B"
     ],
     [
-     "Colombia",
-     "$16.58B"
+     "Pakistan",
+     "$3.20B"
+    ],
+    [
+     "Iraq",
+     "$2.41B"
+    ],
+    [
+     "Lebanon",
+     "$1.17B"
+    ],
+    [
+     "Iran, Islamic Republic of",
+     "$111.9M"
+    ],
+    [
+     "Israel",
+     "$0.00"
+    ],
+    [
+     "Malta",
+     "$0.00"
     ]
    ],
    "chart": {
     "kind": "bar",
     "x": "country",
-    "y": "total_owed_usd"
+    "y": "owed_usd"
    },
    "assumptions": [
-    "'Owe' = outstanding balance = borrowers_obligation_usd, summed per country.",
+    "'Middle East and North Africa' is mapped to the region value 'MID EAST,NORTH AFRICA,AFG,PAK', which also includes Afghanistan and Pakistan countries as grouped by the World Bank (region is the current administrative region).",
+    "Owed = outstanding balance = borrowers_obligation_usd, summed per country; this column is revalued at End of Period exchange rates (due_to_ibrd_usd + exchange_adjustment_usd), not historical rates.",
     "Guarantees excluded (is_guarantee = FALSE).",
-    "Regional entries (Caribbean, Eastern and Southern Africa, Southern Africa, Western and Central Africa) excluded from the country ranking (is_regional_entry = FALSE).",
-    "Ranked by total amount owed, not number of loans.",
-    "Amounts are US$ at historical exchange rates; grouped by the borrower country column."
+    "Regional entries excluded from the country ranking (is_regional_entry = FALSE).",
+    "Ranked by total amount owed, showing the top 10 countries since no number was specified."
    ],
-   "sql": "SELECT country, SUM(borrowers_obligation_usd) AS total_owed_usd\nFROM ibrd_loans\nWHERE is_guarantee = FALSE AND is_regional_entry = FALSE\nGROUP BY country\nORDER BY total_owed_usd DESC\nLIMIT 5",
+   "sql": "SELECT country, SUM(borrowers_obligation_usd) AS owed_usd\nFROM ibrd_loans\nWHERE region = 'MID EAST,NORTH AFRICA,AFG,PAK' AND is_guarantee = FALSE AND is_regional_entry = FALSE\nGROUP BY country\nORDER BY owed_usd DESC\nLIMIT 10",
    "truncated": false,
    "row_limit": 1000,
-   "answered_ms": 2970,
+   "answered_ms": 4020,
    "attempts": 1,
    "data_as_of": "2026-09-30",
    "source": "example",
-   "latency_ms": 2970,
+   "latency_ms": 4020,
    "retry_after_s": null
   },
   {
    "status": "answer",
    "question": "What was the total amount of IBRD loans approved in each fiscal year from 2020 to 2025?",
-   "summary": "Total original principal amount of IBRD loans approved per fiscal year, FY2020 to FY2025.",
+   "summary": "Total IBRD loan amounts approved per fiscal year, FY2020 to FY2025 (guarantees excluded).",
    "columns": [
     {
      "name": "fiscal_year",
@@ -290,26 +330,27 @@
     "y": "total_approved_usd"
    },
    "assumptions": [
-    "Fiscal year = board_approval_fy (Jul-Jun; FY2024 = Jul 2023-Jun 2024), inclusive of FY2020 to FY2025.",
+    "Fiscal year = board_approval_fy (World Bank fiscal year, Jul-Jun; FY2024 = Jul 2023-Jun 2024), range FY2020-FY2025 inclusive.",
     "Amount approved = original_principal_amount_usd, in US$ at historical exchange rates.",
     "Guarantees excluded (is_guarantee = FALSE).",
-    "Regional entries are not excluded since these are overall totals, not country rankings.",
-    "Only loans still present in this snapshot (one row per loan_number) are counted; fully cancelled/terminated loans are included at their original principal amount."
+    "Regional entries are not excluded since this is an overall total, not a country ranking.",
+    "Terminated loans often show $0 original principal (38 of 79 Terminated rows, all approved FY2013-FY2024), so they add nothing to the approved totals for the years that overlap.",
+    "FY2027 is not in the range, so no partial-year figures are included."
    ],
    "sql": "SELECT board_approval_fy AS fiscal_year, SUM(original_principal_amount_usd) AS total_approved_usd\nFROM ibrd_loans\nWHERE is_guarantee = FALSE AND board_approval_fy BETWEEN 2020 AND 2025\nGROUP BY board_approval_fy\nORDER BY board_approval_fy",
    "truncated": false,
    "row_limit": 1000,
-   "answered_ms": 3380,
+   "answered_ms": 3950,
    "attempts": 1,
    "data_as_of": "2026-09-30",
    "source": "example",
-   "latency_ms": 3380,
+   "latency_ms": 3950,
    "retry_after_s": null
   },
   {
    "status": "clarify",
    "question": "Which loans are active?",
-   "summary": "This data has no 'active' status. By active, do you mean loans that are still disbursing (loan_status 'Disbursing' or 'Disbursing&Repaying'), or loans that still have an outstanding balance (borrowers_obligation_usd > 0)?",
+   "summary": "This dataset has no 'active' status. By 'active', do you mean loans that are still disbursing (loan_status 'Disbursing' or 'Disbursing&Repaying'), or loans that have an outstanding balance owed to IBRD?",
    "columns": [],
    "rows": [],
    "display_rows": [],
@@ -318,18 +359,18 @@
    "sql": "",
    "truncated": false,
    "row_limit": 1000,
-   "answered_ms": 2250,
+   "answered_ms": 2990,
    "attempts": 1,
    "data_as_of": "2026-09-30",
    "source": "example",
-   "latency_ms": 2250,
+   "latency_ms": 2990,
    "retry_after_s": null
   }
  ],
  "replaced": {
-  "example": 4,
-  "question": "Which loans are active?",
-  "at": "2026-11-06T11:11:22+00:00",
-  "git_commit": "ffe8964"
+  "example": 2,
+  "question": "Which Middle East and North Africa countries owe the most to the IBRD?",
+  "at": "2026-11-06T11:36:22+00:00",
+  "git_commit": "e75b9e7"
  }
 }

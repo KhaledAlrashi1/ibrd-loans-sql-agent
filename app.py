@@ -16,9 +16,9 @@ REPO_URL = "https://github.com/KhaledAlrashi1/ibrd-loans-sql-agent"
 LICENSE_URL = "https://creativecommons.org/licenses/by/4.0/"
 EXAMPLES = [
     "Which 10 countries have the most undisbursed IBRD loans?",
-    "Which 5 countries owe the most to the IBRD?",
+    "Which Middle East and North Africa countries owe the most to the IBRD?",
     "What was the total amount of IBRD loans approved in each fiscal year from 2020 to 2025?",
-    "How many IBRD loans were approved in fiscal year 2027?",
+    "Which loans are active?",
 ]
 
 st.set_page_config(page_title="IBRD Loans Q&A", page_icon=":material/account_balance:", layout="centered")

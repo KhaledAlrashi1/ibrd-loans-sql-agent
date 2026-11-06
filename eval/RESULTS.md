@@ -151,3 +151,20 @@ Outcomes (correct / abstained / wrong) still never change. No gold values change
 Same numbers as under the previous counting: the only contradicted claim in any run is D15 in dev 3, which
 already failed `must_not_mention`. The `summary.caveats` saved inside older result files uses the counting
 of its day; `rescore.py` is the current number.
+
+## 2026-11-06: Per-column US$ basis and Terminated-loan note (commit `e75b9e7`)
+
+Khaled's decisions on the exchange-rate basis and on Terminated loans changed the dictionary and one prompt
+line, so the system prompt changed. One dev run on that prompt. Heldout was not run.
+
+- `data_dictionary.yaml`: every amount column has a `usd_basis` taken from the official metadata
+  (End of Period for undisbursed; historical for disbursed and repaid; due to IBRD conditional, as the metadata
+  says; borrower's obligation revalued; cancelled, the three 3rd-party columns and loans held "Not documented").
+  The rule `historical_usd` is replaced by `usd_basis`; new rule `terminated_zero_principal`.
+- Model: `claude-sonnet-5-5`, effort `high`. Data: snapshot End of Period 2026-09-30.
+
+| Run | File | Correct | Abstained | Wrong | Caveats | Latency median / max | Cost |
+|---|---|---|---|---|---|---|---|
+| dev (usd_basis) | `results/20261106-143430_dev.json` | 20 | 0 | 0 | 3/3 | 3.2 s / 5.0 s | $0.15 |
+
+0 of 11 single-number answers contradict their result.
