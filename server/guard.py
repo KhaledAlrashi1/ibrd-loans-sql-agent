@@ -11,6 +11,9 @@ A question counts as live only when it gets past the cache, so cache hits and th
 Counters are fixed windows: INCR + EXPIRE NX on a key named after the hour (per IP) or the UTC day (global).
 The per-IP counter is checked first, so a client that is over its own limit never uses up the global cap.
 
+Every Redis key starts with the Vercel environment ("production:", "preview:"), so preview traffic never
+counts against production and the two never share cached answers.
+
 IPs are stored only as a salted sha256 prefix. The salt is derived from the Redis token, so it is secret
 without another environment variable. Any Redis failure raises StoreError; main.py fails closed on it.
 """
@@ -34,8 +37,8 @@ REDIS_TIMEOUT_S = 3.0
 URL_VARS = ("KV_REST_API_URL", "UPSTASH_REDIS_REST_URL")
 TOKEN_VARS = ("KV_REST_API_TOKEN", "UPSTASH_REDIS_REST_TOKEN")
 
-PER_IP_MESSAGE = "You've asked a lot of questions in a short time."
-DAILY_MESSAGE = "Demo limit reached for today. The four examples still work."
+PER_IP_MESSAGE = f"Live questions from your network are limited to {HOURLY_PER_IP} per hour."
+DAILY_MESSAGE = f"This demo has reached today's limit of {DAILY_TOTAL} live questions."
 
 
 class StoreError(Exception):
@@ -50,10 +53,14 @@ class Limited:
 
 
 class UpstashStore:
-    """The three Redis operations this app needs, over the Upstash REST API (one pipeline call each)."""
+    """The three Redis operations this app needs, over the Upstash REST API (one pipeline call each).
 
-    def __init__(self, url: str, token: str):
+    Keys are prefixed with the namespace (the Vercel environment) here, so callers never see it.
+    """
+
+    def __init__(self, url: str, token: str, namespace: str):
         self.url = url.rstrip("/")
+        self.namespace = namespace
         self.salt = hashlib.sha256(b"ibrd-ip-salt:" + token.encode()).hexdigest()
         self.client = httpx2.Client(headers={"Authorization": f"Bearer {token}"}, timeout=REDIS_TIMEOUT_S)
 
@@ -70,13 +77,14 @@ class UpstashStore:
         return [r["result"] for r in replies]
 
     def incr(self, key: str, ttl_s: int) -> int:
+        key = f"{self.namespace}:{key}"
         return int(self.pipeline([["INCR", key], ["EXPIRE", key, ttl_s, "NX"]])[0])
 
     def get(self, key: str) -> str | None:
-        return self.pipeline([["GET", key]])[0]
+        return self.pipeline([["GET", f"{self.namespace}:{key}"]])[0]
 
     def set(self, key: str, value: str, ttl_s: int) -> None:
-        self.pipeline([["SET", key, value, "EX", ttl_s]])
+        self.pipeline([["SET", f"{self.namespace}:{key}", value, "EX", ttl_s]])
 
 
 class MemoryStore:
@@ -115,11 +123,14 @@ _memory = MemoryStore()
 
 
 def get_store(env=os.environ):
-    """Upstash when its variables are set; memory only off Vercel; on Vercel without Redis, None (fail closed)."""
+    """Upstash when its variables are set; memory only off Vercel; on Vercel without Redis, None (fail closed).
+
+    The Upstash namespace is VERCEL_ENV (production | preview | development), "local" off Vercel.
+    """
     url = next((env[v] for v in URL_VARS if env.get(v)), None)
     token = next((env[v] for v in TOKEN_VARS if env.get(v)), None)
     if url and token:
-        return UpstashStore(url, token)
+        return UpstashStore(url, token, env.get("VERCEL_ENV") or "local")
     if env.get("VERCEL"):
         return None
     return _memory

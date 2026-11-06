@@ -277,7 +277,7 @@ The rules come from `display.format_value`, computed in Python so both UIs agree
 | Clarify | Ochre "I need a bit more detail" heading with icon, the question in serif, "Add that detail to your question above and ask again. Nothing was run." The original question stays in the input. |
 | Refuse | **Neutral ink**, not red (refusing is correct behaviour): "I can't answer that from this data" + the agent's reason, which says what it *can* answer |
 | Error | Critical icon + "I couldn't answer that reliably" + reason; "SQL attempted" collapsed |
-| Limited | Neutral: "You've asked a lot of questions in a short time. Try again in 40 s." (countdown). Daily cap: "Demo limit reached for today. The four examples still work." |
+| Limited | Neutral: "Live questions from your network are limited to 20 per hour." + "Try again in 25 min. The examples and repeated questions still work." (countdown). Daily cap: "This demo has reached today's limit of 150 live questions." + "Live questions resume at midnight UTC. The examples and repeated questions still work." (changed Nov 6) |
 | Invalid | Inline under the input, no card, no request |
 | Unavailable / offline | "Demo is temporarily unavailable" / "Couldn't reach the server", plus Retry |
 

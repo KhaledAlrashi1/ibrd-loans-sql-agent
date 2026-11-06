@@ -209,13 +209,33 @@ test("empty result", async ({ page }) => {
   await expect(page.getByText("Assumptions")).toBeVisible();
 });
 
+const PER_IP = "Live questions from your network are limited to 20 per hour.";
+
 test("rate limited: countdown, no answer", async ({ page }) => {
-  await mockAsk(page, { status: "limited", scope: "ip", message: "You've asked a lot of questions in a short time.", retry_after_s: 40 }, { status: 429 });
+  await mockAsk(page, { status: "limited", scope: "ip", message: PER_IP, retry_after_s: 40 }, { status: 429 });
   await page.goto("/");
   await askLive(page, "one more");
-  await expect(page.getByRole("heading", { name: "You've asked a lot of questions in a short time." })).toBeVisible();
+  await expect(page.getByRole("heading", { name: PER_IP })).toBeVisible();
   await expect(page.getByText(/Try again in (40|39)\u00a0s/)).toBeVisible();
   await expect(page.getByText(/Try again in 3[0-8]\u00a0s/)).toBeVisible({ timeout: 4000 });
+});
+
+test("rate limited per network: wait in minutes, examples still work", async ({ page }) => {
+  await mockAsk(page, { status: "limited", scope: "ip", message: PER_IP, retry_after_s: 1500 }, { status: 429 });
+  await page.goto("/");
+  await askLive(page, "one more");
+  await expect(page.getByRole("heading", { name: PER_IP })).toBeVisible();
+  await expect(page.locator(".state-help")).toHaveText("Try again in 25\u00a0min. The examples and repeated questions still work.");
+});
+
+test("daily limit: says the demo is at its limit, not the visitor", async ({ page }) => {
+  const heading = "This demo has reached today's limit of 150 live questions.";
+  await mockAsk(page, { status: "limited", scope: "daily", message: heading, retry_after_s: 30000 }, { status: 429 });
+  await page.goto("/");
+  await askLive(page, "one more");
+  await expect(page.getByRole("heading", { name: heading })).toBeVisible();
+  await expect(page.locator(".state-help")).toHaveText("Live questions resume at midnight UTC. The examples and repeated questions still work.");
+  await expect(page.getByText(/your network|you've asked/i)).toHaveCount(0);
 });
 
 test("unavailable and offline offer a retry", async ({ page }) => {

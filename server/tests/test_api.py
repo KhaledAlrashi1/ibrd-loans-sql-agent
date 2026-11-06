@@ -1,5 +1,7 @@
 """POST /api/ask and GET /api/health with the agent and Redis replaced: offline, no API calls."""
 
+import time
+
 import anthropic
 import httpx2
 import pytest
@@ -306,6 +308,53 @@ def test_store_selection():
     assert isinstance(up, guard.UpstashStore)
     up2 = guard.get_store({"UPSTASH_REDIS_REST_URL": "https://y.upstash.io", "UPSTASH_REDIS_REST_TOKEN": "t"})
     assert isinstance(up2, guard.UpstashStore) and up2.url == "https://y.upstash.io"
+
+
+class RecordingUpstash(guard.UpstashStore):
+    """UpstashStore with the HTTP call replaced by a dict, recording every key it is sent."""
+
+    def __init__(self, namespace, data):
+        super().__init__("https://x.upstash.io", "t", namespace)
+        self.data, self.keys = data, []
+
+    def pipeline(self, commands):
+        replies = []
+        for cmd, key, *args in commands:
+            self.keys.append(key)
+            if cmd == "INCR":
+                self.data[key] = int(self.data.get(key, 0)) + 1
+            elif cmd == "SET":
+                self.data[key] = args[0]
+            replies.append(self.data.get(key) if cmd != "EXPIRE" else 1)
+        return replies
+
+
+def test_redis_keys_are_namespaced_by_vercel_env():
+    env = {"VERCEL": "1", "KV_REST_API_URL": "https://x.upstash.io", "KV_REST_API_TOKEN": "t"}
+    assert guard.get_store({**env, "VERCEL_ENV": "preview"}).namespace == "preview"
+    assert guard.get_store({**env, "VERCEL_ENV": "production"}).namespace == "production"
+    assert guard.get_store({k: v for k, v in env.items() if k != "VERCEL"}).namespace == "local"
+
+    shared = {}  # one Redis database behind both environments
+    preview, production = RecordingUpstash("preview", shared), RecordingUpstash("production", shared)
+    t = 1_800_000_000.0
+    for _ in range(guard.HOURLY_PER_IP):
+        assert guard.check_live(preview, "1.2.3.4", now=t) is None
+    assert guard.check_live(preview, "1.2.3.4", now=t).scope == "ip"
+    guard.cache_put(preview, "ans:v:q", {"status": "answer"})
+
+    # Preview used up its hourly limit and cached an answer; production sees fresh counters and no cache.
+    assert guard.check_live(production, "1.2.3.4", now=t) is None
+    assert guard.cache_get(production, "ans:v:q") is None
+    assert guard.cache_get(preview, "ans:v:q") == {"status": "answer"}
+    assert all(k.startswith("preview:") for k in preview.keys)
+    assert all(k.startswith("production:") for k in production.keys)
+    assert shared[f"production:cap:d:{time.strftime('%Y%m%d', time.gmtime(t))}"] == 1
+
+
+def test_limit_messages():
+    assert guard.PER_IP_MESSAGE == "Live questions from your network are limited to 20 per hour."
+    assert guard.DAILY_MESSAGE == "This demo has reached today's limit of 150 live questions."
 
 
 def test_health(client):
