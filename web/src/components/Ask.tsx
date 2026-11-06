@@ -123,7 +123,7 @@ export function Ask({ examples }: { examples: ExamplesFile }) {
     run.current++;  // cancels a live question still in flight
     setText(e.question);
     setProblem(null);
-    show({ kind: "answer", data: e }, "answer");
+    show({ kind: "answer", data: e }, e.status);
     reveal();
   }
 

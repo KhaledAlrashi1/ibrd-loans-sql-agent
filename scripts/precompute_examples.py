@@ -5,6 +5,7 @@
 
 The output is committed as-is and shown as "Cached example": never hand-edit it and never re-run a question
 to get a nicer answer (Khaled, Nov 3). --replace swaps exactly one example (1-based) and keeps the others.
+An example may be an answer or a clarifying question (example 4, "Which loans are active?", Nov 6).
 The questions come from EXAMPLES in app.py, read without importing Streamlit.
 """
 
@@ -80,9 +81,9 @@ def main() -> int:
                         "end_of_period": info.end_of_period.isoformat(), "rows": rows},
             "examples": [run(q) for q in app_examples()],
         }
-    failed = [e["question"] for e in data["examples"] if e["status"] != "answer"]
+    failed = [e["question"] for e in data["examples"] if e["status"] not in ("answer", "clarify")]
     if failed:
-        raise SystemExit(f"not saved: an example did not return an answer: {failed}")
+        raise SystemExit(f"not saved: an example did not return an answer or a clarifying question: {failed}")
     OUT.parent.mkdir(parents=True, exist_ok=True)
     OUT.write_text(json.dumps(data, indent=1, ensure_ascii=False) + "\n")
     print(f"\nOK: wrote {OUT.relative_to(ROOT)}")
